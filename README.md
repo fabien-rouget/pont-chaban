@@ -33,7 +33,7 @@ Structure : `src/lib/time.ts` (dates Europe/Paris), `closures.ts` (fermetures et
 
 ## Déploiement
 
-GitHub Actions (`.github/workflows/deploy.yml`) : tests, build puis déploiement sur GitHub Pages à chaque push sur `main`.
+GitHub Actions (`.github/workflows/deploy.yml`) : tests, build puis déploiement sur GitHub Pages à chaque push sur `master` (ou `main`).
 Prérequis : dans *Settings → Pages*, choisir **Source : GitHub Actions**. Le `base` de Vite est `/pont-chaban/`.
 
 ## Licence
