@@ -13,8 +13,11 @@ export interface Snapshot {
   fetchedAt: number;
 }
 
-/** Cause d'un échec : `source` = le service de Bordeaux Métropole répond en erreur (panne), `network` = pas de connexion. */
-export type FailReason = 'source' | 'network';
+/** Cause d'un échec : `source` = le service de Bordeaux Métropole répond en erreur (panne), `timeout` = il ne répond pas dans le délai, `network` = pas de connexion. */
+export type FailReason = 'source' | 'timeout' | 'network';
+
+/** Délai maximal d'attente de chaque requête. */
+export const REQUEST_TIMEOUT_MS = 10_000;
 
 export interface LoadResult {
   /** Dernières données disponibles (réseau ou cache), null s'il n'y en a aucune. */
@@ -31,8 +34,8 @@ class HttpError extends Error {
 }
 
 
-async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(url, { signal, headers: { Accept: 'application/json' } });
+async function getJson<T>(url: string): Promise<T> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Accept: 'application/json' } });
   if (!res.ok) throw new HttpError(res.status);
   return (await res.json()) as T;
 }
@@ -47,11 +50,11 @@ export function recordsUrl(yesterday: string, offset: number): string {
   return `${BASE}/records?${q}`;
 }
 
-export async function fetchRecords(now: number, signal?: AbortSignal): Promise<RawRecord[]> {
+export async function fetchRecords(now: number): Promise<RawRecord[]> {
   const yesterday = addDays(dateKeyOf(now), -1);
   const out: RawRecord[] = [];
   for (let offset = 0; offset < 2000; offset += PAGE) {
-    const page = await getJson<{ total_count?: number; results?: RawRecord[] }>(recordsUrl(yesterday, offset), signal);
+    const page = await getJson<{ total_count?: number; results?: RawRecord[] }>(recordsUrl(yesterday, offset));
     const results = page.results ?? [];
     out.push(...results);
     if (results.length < PAGE || out.length >= (page.total_count ?? 0)) break;
@@ -59,8 +62,8 @@ export async function fetchRecords(now: number, signal?: AbortSignal): Promise<R
   return out;
 }
 
-export async function fetchProcessedAt(signal?: AbortSignal): Promise<string | null> {
-  const meta = await getJson<{ metas?: { default?: { data_processed?: string } } }>(BASE, signal);
+export async function fetchProcessedAt(): Promise<string | null> {
+  const meta = await getJson<{ metas?: { default?: { data_processed?: string } } }>(BASE);
   return meta.metas?.default?.data_processed ?? null;
 }
 
@@ -91,17 +94,17 @@ function writeCache(s: Snapshot): void {
 export async function load(now = Date.now()): Promise<LoadResult> {
   const cached = readCache();
   try {
-    const signal = AbortSignal.timeout(12_000);
     const [records, processedAt] = await Promise.all([
-      fetchRecords(now, signal),
-      fetchProcessedAt(signal).catch(() => cached?.processedAt ?? null),
+      fetchRecords(now),
+      fetchProcessedAt().catch(() => cached?.processedAt ?? null),
     ]);
     const snapshot: Snapshot = { records, processedAt, fetchedAt: now };
     writeCache(snapshot);
     return { snapshot, offline: false };
   } catch (e) {
-    const reason: FailReason =
-      e instanceof HttpError ? 'source' : typeof navigator !== 'undefined' && navigator.onLine ? 'source' : 'network';
+    const online = typeof navigator === 'undefined' || navigator.onLine !== false;
+    const timedOut = e instanceof DOMException && (e.name === 'TimeoutError' || e.name === 'AbortError');
+    const reason: FailReason = e instanceof HttpError ? 'source' : timedOut && online ? 'timeout' : online ? 'source' : 'network';
     return { snapshot: cached, offline: true, reason };
   }
 }

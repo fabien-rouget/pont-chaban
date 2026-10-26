@@ -84,14 +84,16 @@ function renderHero(now: number): void {
   const box = $('countdown');
 
   if (state.failed) {
-    const source = state.reason === 'source';
+    const source = state.reason !== 'network';
     setText(title, source ? 'Données officielles indisponibles.' : 'Connexion impossible.');
     title.className = 'hero__title';
     pill.className = 'pill pill--loading';
     setText($('pill-text'), 'Inconnu');
     box.replaceChildren(
       el('p', { class: 'countdown__label' }, source
-        ? "Le service de données officiel de Bordeaux Métropole est actuellement en panne : les prévisions de fermeture ne peuvent pas être récupérées. Ce n'est pas un problème de votre appareil. Nouvel essai automatique toutes les minutes."
+        ? (state.reason === 'timeout'
+          ? "Le service de données officiel de Bordeaux Métropole ne répond pas (délai de 10 secondes dépassé) : il est probablement en panne ou surchargé. Les prévisions de fermeture ne peuvent pas être récupérées. Nouvel essai automatique toutes les minutes."
+          : "Le service de données officiel de Bordeaux Métropole est actuellement en panne : les prévisions de fermeture ne peuvent pas être récupérées. Ce n'est pas un problème de votre appareil. Nouvel essai automatique toutes les minutes.")
         : "Impossible de joindre le service de données de Bordeaux Métropole. Vérifiez votre connexion internet. Nouvel essai automatique toutes les minutes."),
       el('button', { class: 'retry', type: 'button', id: 'retry' }, 'Réessayer'),
     );
@@ -157,8 +159,8 @@ function renderFreshness(now: number): void {
   banner.hidden = !state.offline;
   if (state.offline) {
     const f = formatInstantNumeric(snap.fetchedAt);
-    banner.textContent = state.reason === 'source'
-      ? `Hors ligne – données du ${f.date} à ${f.time}. Le service officiel de Bordeaux Métropole est en panne, ces prévisions peuvent ne plus être à jour.`
+    banner.textContent = state.reason !== 'network'
+      ? `Hors ligne – données du ${f.date} à ${f.time}. Le service officiel de Bordeaux Métropole est en panne ou ne répond pas, ces prévisions peuvent ne plus être à jour.`
       : `Hors ligne – données du ${f.date} à ${f.time}`;
   }
   const nodes: Child[] = [];
