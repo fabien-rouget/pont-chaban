@@ -87,12 +87,16 @@
       <section id="fermetures" class="upcoming" aria-labelledby="upcoming-title">
         <h2 id="upcoming-title" class="section-title">Fermetures à venir</h2>
         <p id="summary" class="summary"></p>
-        <div class="upcoming__grid">
-          <div class="cal-col">
-            <div id="calendar" class="card calendar"></div>
-            <div id="detail" class="card detail" aria-live="polite"></div>
-          </div>
+        <div class="tabs" role="tablist" aria-label="Affichage des fermetures à venir">
+          <button id="tab-list" class="tab" type="button" role="tab" aria-selected="true" aria-controls="panel-list">Liste</button>
+          <button id="tab-cal" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-cal" tabindex="-1">Calendrier</button>
+        </div>
+        <div id="panel-list" class="panel" role="tabpanel" aria-labelledby="tab-list">
           <div id="list" class="list-col"></div>
+        </div>
+        <div id="panel-cal" class="panel panel--cal" role="tabpanel" aria-labelledby="tab-cal" hidden>
+          <div id="calendar" class="card calendar"></div>
+          <div id="detail" class="card detail" aria-live="polite"></div>
         </div>
       </section>
     </main>

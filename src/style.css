@@ -188,12 +188,12 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .upcoming { margin-top: 40px; }
 .section-title { margin: 0 0 4px; font: 700 clamp(1.5rem, 5vw, 2rem)/1.2 var(--serif); }
 .summary { min-height: 1.5em; margin: 0 0 16px; color: var(--muted); }
-.upcoming__grid { display: grid; gap: 16px; align-items: start; }
-@media (min-width: 900px) {
-  .upcoming__grid { grid-template-columns: minmax(300px, 380px) 1fr; }
-  .cal-col { position: sticky; top: 72px; }
-}
-.cal-col { display: grid; gap: 12px; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; }
+.tab { font: inherit; font-weight: 700; padding: 8px 20px; border: 0; border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; }
+.tab[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
+.tab:not([aria-selected='true']):hover { background: var(--accent-soft); }
+.panel--cal { display: grid; gap: 12px; max-width: 420px; }
+.panel--cal[hidden] { display: none; }
 
 .calendar { min-height: 376px; }
 .calendar__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }

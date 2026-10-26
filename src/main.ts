@@ -398,8 +398,31 @@ async function refresh(): Promise<void> {
   else clearTimeout(retryTimer);
 }
 
+function initTabs(): void {
+  const tabs = [$('tab-list'), $('tab-cal')];
+  const panels = [$('panel-list'), $('panel-cal')];
+  const show = (i: number, focus = false) => {
+    tabs.forEach((t, j) => {
+      t.setAttribute('aria-selected', String(i === j));
+      t.tabIndex = i === j ? 0 : -1;
+      panels[j].hidden = i !== j;
+    });
+    if (focus) tabs[i].focus();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => show(i));
+    t.addEventListener('keydown', (e) => {
+      const k = (e as KeyboardEvent).key;
+      if (k === 'ArrowRight' || k === 'ArrowLeft') { e.preventDefault(); show((i + 1) % tabs.length, true); }
+      else if (k === 'Home') { e.preventDefault(); show(0, true); }
+      else if (k === 'End') { e.preventDefault(); show(tabs.length - 1, true); }
+    });
+  });
+}
+
 function init(): void {
   initTheme();
+  initTabs();
   $('countdown').addEventListener('click', (e) => {
     if ((e.target as HTMLElement).id === 'retry') { state.failed = false; setText($('status-title'), 'Chargement…'); void refresh(); }
   });
