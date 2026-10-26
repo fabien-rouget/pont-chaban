@@ -1,5 +1,5 @@
 import './style.css';
-import { load, type FailReason, type Snapshot } from './lib/api';
+import { HOSTS, load, type FailReason, type Snapshot } from './lib/api';
 import {
   WEEKDAY_LABELS, buildMonth, dayAriaLabel, groupByDay, monthBounds, monthKey, monthOf, shiftMonth,
   threeMonthSummary, type MonthRef,
@@ -168,7 +168,8 @@ function renderFreshness(now: number): void {
     const ms = Date.parse(snap.processedAt);
     if (!Number.isNaN(ms)) {
       const f = formatInstantNumeric(ms);
-      nodes.push(el('span', {}, `Données Bordeaux Métropole mises à jour le ${f.date} à ${f.time}`));
+      const via = snap.host && snap.host !== HOSTS[0] ? ` · via ${new URL(snap.host).hostname}` : '';
+      nodes.push(el('span', {}, `Données Bordeaux Métropole mises à jour le ${f.date} à ${f.time}${via}`));
       if (now - ms > 8 * 24 * 60 * MINUTE) {
         nodes.push(el('div', { class: 'fresh__warn', role: 'alert' },
           'Attention : ces données ont plus de 8 jours. Les prévisions affichées peuvent ne plus être à jour.'));

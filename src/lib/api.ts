@@ -12,8 +12,8 @@ export const HOSTS = [
 ] as const;
 const PATH = '/api/explore/v2.1/catalog/datasets/previsions_pont_chaban';
 const BASE = `${HOSTS[0]}${PATH}`;
-/** Dernière adresse qui a répondu : essayée en premier la fois suivante. */
-let preferred: string | null = null;
+/** Attente maximale d'une adresse plus prioritaire une fois qu'une moins prioritaire a répondu. */
+export const PRIORITY_GRACE_MS = 2000;
 const CACHE_KEY = 'pont-chaban:data:v1';
 const PAGE = 100;
 
@@ -23,6 +23,8 @@ export interface Snapshot {
   processedAt: string | null;
   /** Instant (ms) où ces données ont été récupérées. */
   fetchedAt: number;
+  /** Adresse qui a fourni les données (voir `HOSTS`). */
+  host?: string;
 }
 
 /** Cause d'un échec : `source` = le service de Bordeaux Métropole répond en erreur (panne), `timeout` = il ne répond pas dans le délai, `network` = pas de connexion. */
@@ -68,22 +70,36 @@ function summarize(errors: unknown[]): unknown {
   );
 }
 
-/** Interroge toutes les adresses en parallèle et retient la première qui répond correctement. */
+/**
+ * Interroge toutes les adresses en parallèle et retient la plus prioritaire qui répond :
+ * si une adresse secondaire répond d'abord, on laisse `PRIORITY_GRACE_MS` aux adresses prioritaires.
+ */
 async function pickHost(): Promise<string> {
-  const ordered = preferred ? [preferred, ...HOSTS.filter((h) => h !== preferred)] : [...HOSTS];
-  const ctrls = ordered.map(() => new AbortController());
+  const ctrls = HOSTS.map(() => new AbortController());
+  const errors: unknown[] = [];
+  const attempts = HOSTS.map((host, i) =>
+    getJson(`${host}${PATH}/records?limit=1`, ctrls[i].signal).then(
+      () => ({ host, rank: i }),
+      (e) => {
+        errors.push(e);
+        throw e;
+      },
+    ),
+  );
   try {
-    const winner = await Promise.any(
-      ordered.map(async (host, i) => {
-        await getJson(`${host}${PATH}/records?limit=1`, ctrls[i].signal);
-        return host;
-      }),
-    );
+    let best = await Promise.any(attempts);
+    if (best.rank > 0) {
+      const better = await Promise.race([
+        Promise.any(attempts.slice(0, best.rank)).catch(() => null),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), PRIORITY_GRACE_MS)),
+      ]);
+      if (better) best = better;
+    }
+    return best.host;
+  } catch {
+    throw summarize(errors);
+  } finally {
     ctrls.forEach((c) => c.abort());
-    preferred = winner;
-    return winner;
-  } catch (e) {
-    throw e instanceof AggregateError ? summarize(e.errors) : e;
   }
 }
 
@@ -141,12 +157,13 @@ function writeCache(s: Snapshot): void {
 export async function load(now = Date.now()): Promise<LoadResult> {
   const cached = readCache();
   try {
-    const base = `${await pickHost()}${PATH}`;
+    const host = await pickHost();
+    const base = `${host}${PATH}`;
     const [records, processedAt] = await Promise.all([
       fetchRecords(now, base),
       fetchProcessedAt(base).catch(() => cached?.processedAt ?? null),
     ]);
-    const snapshot: Snapshot = { records, processedAt, fetchedAt: now };
+    const snapshot: Snapshot = { records, processedAt, fetchedAt: now, host };
     writeCache(snapshot);
     return { snapshot, offline: false };
   } catch (e) {
