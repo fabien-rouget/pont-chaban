@@ -59,37 +59,6 @@
   color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #1b1214;
-    --surface: #271a1d;
-    --surface-2: #33232a;
-    --text: #f4eadc;
-    --muted: #c9b8ae;
-    --line: #4a3338;
-    --accent: #e8a0ab;
-    --accent-contrast: #2b1017;
-    --accent-soft: #4a2630;
-    --open: #2ee66b;
-    --open-bg: #2ee66b;
-    --open-on: #04210f;
-    --warn-bg: #4a3a10;
-    --warn-text: #ffe8a8;
-    --sky-top: #3a2430;
-    --sky-bottom: #5a3a3c;
-    --water: #2f5558;
-    --water-dark: #234446;
-    --steel: #e8a0ab;
-    --steel-light: #c27582;
-    --deck: #f4eadc;
-    --car-1: #f0a640;
-    --car-2: #5fb3d3;
-    --car-3: #d9c8ae;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
-    color-scheme: dark;
-  }
-}
-
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {

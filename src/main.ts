@@ -54,18 +54,11 @@ function el<K extends keyof HTMLElementTagNameMap>(
 /* ---------- Thème ---------- */
 function initTheme(): void {
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  const apply = () => {
-    const dark = document.documentElement.dataset.theme
-      ? document.documentElement.dataset.theme === 'dark'
-      : matchMedia('(prefers-color-scheme: dark)').matches;
-    meta?.setAttribute('content', dark ? '#1b1214' : '#6b1e2e');
-  };
+  const isDark = () => document.documentElement.dataset.theme === 'dark';
+  const apply = () => meta?.setAttribute('content', isDark() ? '#1b1214' : '#6b1e2e');
   apply();
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', apply);
   $('theme').addEventListener('click', () => {
-    const cur = document.documentElement.dataset.theme;
-    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    const next = dark ? 'light' : 'dark';
+    const next = isDark() ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem('pont-chaban:theme', next); } catch { /* sans stockage */ }
     apply();
