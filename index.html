@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pont Chaban – état du pont et fermetures à venir</title>
+    <meta name="description" content="État du pont Chaban-Delmas à Bordeaux, compte à rebours avant la prochaine fermeture et calendrier des fermetures, d'après les prévisions officielles de Bordeaux Métropole." />
+    <meta name="theme-color" content="#6b1e2e" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <script>
+      try {
+        var t = localStorage.getItem('pont-chaban:theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#fermetures">Aller aux fermetures à venir</a>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <h1 class="brand">
+          <svg class="brand__logo" viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="8" fill="currentColor" />
+            <path d="M7 9v14M25 9v14M7 9h18M9 17h14" stroke="#f7f0e4" stroke-width="2.4" stroke-linecap="round" fill="none" />
+          </svg>
+          Pont Chaban
+        </h1>
+        <div class="topbar__actions">
+          <span id="pill" class="pill pill--loading" role="status"><span class="pill__dot" aria-hidden="true"></span><span id="pill-text">Chargement</span></span>
+          <button id="theme" class="icon-btn" type="button" aria-label="Basculer le thème clair ou sombre" title="Thème clair / sombre">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.5 0-.9-.1-1.3A5.5 5.5 0 0 1 13.3 3.1 9 9 0 0 0 12 3Z" /></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="status-title">
+        <div id="offline" class="banner banner--offline" hidden></div>
+        <h2 id="status-title" class="hero__title" aria-live="polite">Chargement des prévisions…</h2>
+        <p class="hero__sub">Selon les prévisions officielles de Bordeaux Métropole, pas en temps réel.</p>
+
+        <svg id="bridge" class="bridge" viewBox="0 0 480 250" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--sky-top)" />
+              <stop offset="1" stop-color="var(--sky-bottom)" />
+            </linearGradient>
+          </defs>
+          <rect width="480" height="250" rx="18" fill="url(#sky)" />
+          <circle class="bridge__sun" cx="392" cy="70" r="26" />
+          <g class="bridge__water">
+            <rect y="198" width="480" height="52" />
+            <path class="wave" d="M0 210q30-8 60 0t60 0 60 0 60 0 60 0 60 0 60 0 60 0 60 0v8H0z" />
+            <path class="wave wave--2" d="M0 226q30-8 60 0t60 0 60 0 60 0 60 0 60 0 60 0 60 0 60 0v8H0z" />
+          </g>
+          <g class="bridge__boat">
+            <path class="boat-hull" d="M-34 196h68l-10 14h-48z" />
+            <path class="boat-mast" d="M0 196V150" />
+            <path class="boat-sail" d="M3 152l24 38H3z" />
+            <path class="boat-sail boat-sail--2" d="M-3 160l-20 30h20z" />
+          </g>
+          <g class="bridge__structure">
+            <rect class="deck-fixed" x="0" y="176" width="118" height="11" />
+            <rect class="deck-fixed" x="362" y="176" width="118" height="11" />
+            <rect class="pier" x="40" y="187" width="12" height="16" />
+            <rect class="pier" x="428" y="187" width="12" height="16" />
+            <rect class="tower" x="94" y="28" width="30" height="175" rx="2" />
+            <rect class="tower" x="356" y="28" width="30" height="175" rx="2" />
+            <path class="tower-slot" d="M109 44v140M371 44v140" />
+            <rect class="girder" x="94" y="28" width="292" height="12" rx="2" />
+            <path class="stays" d="M109 40L12 176M109 40L60 176M371 40L468 176M371 40L420 176" />
+          </g>
+          <g class="bridge__deck">
+            <rect class="deck-carriage" x="120" y="160" width="12" height="32" rx="2" />
+            <rect class="deck-carriage" x="348" y="160" width="12" height="32" rx="2" />
+            <rect class="deck" x="124" y="170" width="232" height="12" />
+            <path class="deck-rail" d="M126 170v-12h228v12M126 164h228" />
+            <path class="deck-line" d="M136 176h14M164 176h14M192 176h14M220 176h14M248 176h14M276 176h14M304 176h14M332 176h14" />
+          </g>
+        </svg>
+
+        <div id="countdown" class="card countdown" aria-live="off"></div>
+        <div id="freshness" class="fresh"></div>
+        <p class="disclaimer">
+          L'état affiché est déduit du planning de fermeture, ce n'est pas une mesure en temps réel.
+          Les créneaux restent sous réserve de confirmation de la Capitainerie du Grand Port Maritime de Bordeaux.
+        </p>
+      </section>
+
+      <section id="fermetures" class="upcoming" aria-labelledby="upcoming-title">
+        <h2 id="upcoming-title" class="section-title">Fermetures à venir</h2>
+        <p id="summary" class="summary"></p>
+        <div class="upcoming__grid">
+          <div class="cal-col">
+            <div id="calendar" class="card calendar"></div>
+            <div id="detail" class="card detail" aria-live="polite"></div>
+          </div>
+          <div id="list" class="list-col"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Source :
+        <a href="https://datahub.bordeaux-metropole.fr/explore/dataset/previsions_pont_chaban/information/" rel="noopener">Bordeaux Métropole – Licence Ouverte</a>
+        (jeu de données « Pont Chaban – Prévisions – Fermeture »).
+      </p>
+      <p>
+        Application indépendante, non officielle.
+        <a href="https://sedeplacer.bordeaux-metropole.fr/previsions-fermetures-pont-chaban-delmas" rel="noopener">Page officielle de la Métropole</a>
+        · <a href="https://github.com/fabien-rouget/pont-chaban" rel="noopener">Code source</a>
+      </p>
+      <p class="footer__small">Aucun cookie, aucun traceur.</p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

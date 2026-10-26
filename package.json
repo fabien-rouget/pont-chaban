@@ -1,0 +1,22 @@
+{
+  "name": "pont-chaban",
+  "version": "1.0.0",
+  "private": true,
+  "description": "État du pont Chaban-Delmas (Bordeaux) et fermetures à venir, d'après les prévisions officielles de Bordeaux Métropole.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5"
+  }
+}
