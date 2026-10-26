@@ -82,7 +82,7 @@ function renderHero(now: number): void {
     pill.className = 'pill pill--loading';
     setText($('pill-text'), 'Inconnu');
     box.replaceChildren(
-      el('p', { class: 'countdown__label' }, "Impossible de récupérer les prévisions et aucune donnée n'est enregistrée sur cet appareil."),
+      el('p', { class: 'countdown__label' }, "Le service de données de Bordeaux Métropole ne répond pas pour le moment et aucune donnée n'est enregistrée sur cet appareil. Nouvel essai automatique toutes les minutes."),
       el('button', { class: 'retry', type: 'button', id: 'retry' }, 'Réessayer'),
     );
     return;
@@ -363,7 +363,11 @@ async function refresh(): Promise<void> {
   const result = await load();
   loading = false;
   if (!result) {
-    if (!state.snapshot) { state.failed = true; renderHero(Date.now()); }
+    if (!state.snapshot) {
+      state.failed = true;
+      renderHero(Date.now());
+      setTimeout(() => void refresh(), MINUTE);
+    }
     return;
   }
   state.failed = false;
