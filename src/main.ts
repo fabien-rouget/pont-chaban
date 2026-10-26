@@ -1,5 +1,5 @@
 import './style.css';
-import { load, type Snapshot } from './lib/api';
+import { load, type FailReason, type Snapshot } from './lib/api';
 import {
   WEEKDAY_LABELS, buildMonth, dayAriaLabel, groupByDay, monthBounds, monthKey, monthOf, shiftMonth,
   threeMonthSummary, type MonthRef,
@@ -20,15 +20,22 @@ interface AppState {
   offline: boolean;
   all: Closure[];
   failed: boolean;
+  reason: FailReason;
   selectedDay: string | null;
   viewMonth: MonthRef | null;
   focusDay: string | null;
 }
 const state: AppState = {
-  snapshot: null, offline: false, all: [], failed: false, selectedDay: null, viewMonth: null, focusDay: null,
+  snapshot: null, offline: false, all: [], failed: false, reason: 'source', selectedDay: null, viewMonth: null, focusDay: null,
 };
 let lastDayKey = '';
 let loading = false;
+let retryTimer: number | undefined;
+
+function scheduleRetry(ms: number): void {
+  clearTimeout(retryTimer);
+  retryTimer = window.setTimeout(() => void refresh(), ms);
+}
 
 /* ---------- Petit utilitaire DOM ---------- */
 type Child = Node | string | null | undefined | false;
@@ -77,12 +84,15 @@ function renderHero(now: number): void {
   const box = $('countdown');
 
   if (state.failed) {
-    setText(title, 'Prévisions indisponibles pour le moment.');
+    const source = state.reason === 'source';
+    setText(title, source ? 'Données officielles indisponibles.' : 'Connexion impossible.');
     title.className = 'hero__title';
     pill.className = 'pill pill--loading';
     setText($('pill-text'), 'Inconnu');
     box.replaceChildren(
-      el('p', { class: 'countdown__label' }, "Le service de données de Bordeaux Métropole ne répond pas pour le moment et aucune donnée n'est enregistrée sur cet appareil. Nouvel essai automatique toutes les minutes."),
+      el('p', { class: 'countdown__label' }, source
+        ? "Le service de données officiel de Bordeaux Métropole est actuellement en panne : les prévisions de fermeture ne peuvent pas être récupérées. Ce n'est pas un problème de votre appareil. Nouvel essai automatique toutes les minutes."
+        : "Impossible de joindre le service de données de Bordeaux Métropole. Vérifiez votre connexion internet. Nouvel essai automatique toutes les minutes."),
       el('button', { class: 'retry', type: 'button', id: 'retry' }, 'Réessayer'),
     );
     return;
@@ -147,7 +157,9 @@ function renderFreshness(now: number): void {
   banner.hidden = !state.offline;
   if (state.offline) {
     const f = formatInstantNumeric(snap.fetchedAt);
-    banner.textContent = `Hors ligne – données du ${f.date} à ${f.time}`;
+    banner.textContent = state.reason === 'source'
+      ? `Hors ligne – données du ${f.date} à ${f.time}. Le service officiel de Bordeaux Métropole est en panne, ces prévisions peuvent ne plus être à jour.`
+      : `Hors ligne – données du ${f.date} à ${f.time}`;
   }
   const nodes: Child[] = [];
   if (snap.processedAt) {
@@ -362,11 +374,12 @@ async function refresh(): Promise<void> {
   loading = true;
   const result = await load();
   loading = false;
-  if (!result) {
+  state.reason = result.reason ?? 'source';
+  if (!result.snapshot) {
     if (!state.snapshot) {
       state.failed = true;
       renderHero(Date.now());
-      setTimeout(() => void refresh(), MINUTE);
+      scheduleRetry(MINUTE);
     }
     return;
   }
@@ -375,6 +388,8 @@ async function refresh(): Promise<void> {
   state.offline = result.offline;
   state.all = toClosures(result.snapshot.records);
   renderAll();
+  if (result.offline) scheduleRetry(5 * MINUTE);
+  else clearTimeout(retryTimer);
 }
 
 function init(): void {

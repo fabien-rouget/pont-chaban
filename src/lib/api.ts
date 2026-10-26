@@ -13,15 +13,27 @@ export interface Snapshot {
   fetchedAt: number;
 }
 
+/** Cause d'un échec : `source` = le service de Bordeaux Métropole répond en erreur (panne), `network` = pas de connexion. */
+export type FailReason = 'source' | 'network';
+
 export interface LoadResult {
-  snapshot: Snapshot;
-  /** Vrai si le réseau a échoué et que le cache est utilisé. */
+  /** Dernières données disponibles (réseau ou cache), null s'il n'y en a aucune. */
+  snapshot: Snapshot | null;
+  /** Vrai si le réseau/l'API a échoué (le cache éventuel est alors utilisé). */
   offline: boolean;
+  reason?: FailReason;
 }
+
+class HttpError extends Error {
+  constructor(readonly status: number) {
+    super(`HTTP ${status}`);
+  }
+}
+
 
 async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(url, { signal, headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new HttpError(res.status);
   return (await res.json()) as T;
 }
 
@@ -71,8 +83,12 @@ function writeCache(s: Snapshot): void {
   }
 }
 
-/** Réseau d'abord ; repli sur le dernier instantané en cache. Renvoie null si rien n'est disponible. */
-export async function load(now = Date.now()): Promise<LoadResult | null> {
+/**
+ * Réseau d'abord ; repli sur le dernier instantané en cache.
+ * Un navigateur qui ne peut pas lire une réponse d'erreur (502 sans en-tête CORS) lève une erreur réseau :
+ * on ne distingue alors une panne de la source d'une coupure réseau que si `navigator.onLine` le permet.
+ */
+export async function load(now = Date.now()): Promise<LoadResult> {
   const cached = readCache();
   try {
     const signal = AbortSignal.timeout(12_000);
@@ -83,8 +99,10 @@ export async function load(now = Date.now()): Promise<LoadResult | null> {
     const snapshot: Snapshot = { records, processedAt, fetchedAt: now };
     writeCache(snapshot);
     return { snapshot, offline: false };
-  } catch {
-    return cached ? { snapshot: cached, offline: true } : null;
+  } catch (e) {
+    const reason: FailReason =
+      e instanceof HttpError ? 'source' : typeof navigator !== 'undefined' && navigator.onLine ? 'source' : 'network';
+    return { snapshot: cached, offline: true, reason };
   }
 }
 
