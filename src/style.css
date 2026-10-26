@@ -194,6 +194,9 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .tab:not([aria-selected='true']):hover { background: var(--accent-soft); }
 .panel--cal { display: grid; gap: 12px; max-width: 420px; }
 .panel--cal[hidden] { display: none; }
+@media (min-width: 900px) {
+  .panel--cal { max-width: none; grid-template-columns: minmax(300px, 420px) minmax(280px, 1fr); align-items: start; }
+}
 
 .calendar { min-height: 376px; }
 .calendar__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
