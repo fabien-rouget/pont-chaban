@@ -66,6 +66,24 @@ function initTheme(): void {
 }
 
 /* ---------- Bloc principal ---------- */
+/**
+ * Réduit la taille du titre d'état si besoin pour qu'il tienne sur une seule ligne :
+ * la largeur du texte dépend de la police du système (Iowan Old Style sur iOS, etc.),
+ * on la mesure donc sur l'appareil plutôt que de la deviner en CSS.
+ */
+function fitTitle(): void {
+  const t = $('status-title');
+  t.style.fontSize = '';
+  t.style.whiteSpace = 'nowrap';
+  const avail = t.clientWidth;
+  const need = t.scrollWidth;
+  if (avail > 0 && need > avail) {
+    const base = parseFloat(getComputedStyle(t).fontSize);
+    t.style.fontSize = `${Math.max(16, Math.floor((base * avail / need - 0.5) * 10) / 10)}px`;
+  }
+  t.style.whiteSpace = '';
+}
+
 function setText(node: HTMLElement, text: string): void {
   if (node.textContent !== text) node.textContent = text;
 }
@@ -339,6 +357,7 @@ function renderAll(): void {
   const now = Date.now();
   lastDayKey = dateKeyOf(now);
   renderHero(now);
+  fitTitle();
   renderFreshness(now);
   renderCalendar(now);
   renderDetail(now);
@@ -348,7 +367,7 @@ function renderAll(): void {
 function tick(): void {
   const now = Date.now();
   if (dateKeyOf(now) !== lastDayKey) renderAll();
-  else { renderHero(now); renderFreshness(now); }
+  else { renderHero(now); fitTitle(); renderFreshness(now); }
 }
 
 function scheduleTick(): void {
@@ -366,6 +385,7 @@ async function refresh(): Promise<void> {
     if (!state.snapshot) {
       state.failed = true;
       renderHero(Date.now());
+      fitTitle();
       scheduleRetry(MINUTE);
     }
     return;
@@ -413,6 +433,7 @@ function init(): void {
     if (age > 30 * MINUTE || state.offline) void refresh(); else tick();
   });
   addEventListener('online', () => void refresh());
+  addEventListener('resize', fitTitle);
   void refresh();
   scheduleTick();
 }
