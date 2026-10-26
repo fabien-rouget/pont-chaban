@@ -2,14 +2,14 @@ import './style.css';
 import { HOSTS, load, type FailReason, type Snapshot } from './lib/api';
 import {
   WEEKDAY_LABELS, buildMonth, dayAriaLabel, groupByDay, monthBounds, monthKey, monthOf, shiftMonth,
-  threeMonthSummary, type MonthRef,
+  type MonthRef,
 } from './lib/calendar';
 import {
   computeStatus, prettyLabel, toClosures, typeLabel, upcomingClosures, type Closure, type Status,
 } from './lib/closures';
 import {
   MINUTE, addDays, dateKeyOf, formatCountdown, formatDayMonth, formatInstantNumeric, formatLength,
-  formatLongDate, formatNumericDate, formatShortDate, parseDateKey, monthName,
+  formatLongDate, formatNumericDate, formatShortDate, parseDateKey,
 } from './lib/time';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -187,14 +187,6 @@ function visibleClosures(now: number): Closure[] {
   return upcomingClosures(state.all, now);
 }
 
-function renderSummary(now: number): void {
-  const node = $('summary');
-  if (!state.snapshot) { node.textContent = ''; return; }
-  const s = threeMonthSummary(visibleClosures(now), now);
-  const d = (k: string) => `${parseDateKey(k).day === 1 ? '1er' : parseDateKey(k).day} ${monthName(parseDateKey(k).month)}`;
-  node.textContent = `Du ${d(s.from)} au ${d(s.to)} : ${s.count} fermeture${s.count > 1 ? 's' : ''}`;
-}
-
 function renderCalendar(now: number): void {
   const root = $('calendar');
   if (!state.snapshot) { root.replaceChildren(); return; }
@@ -358,7 +350,6 @@ function renderAll(): void {
   lastDayKey = dateKeyOf(now);
   renderHero(now);
   renderFreshness(now);
-  renderSummary(now);
   renderCalendar(now);
   renderDetail(now);
   renderList(now);

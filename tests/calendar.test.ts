@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildMonth, dayAriaLabel, monthBounds, mondayIndex, shiftMonth, threeMonthSummary,
+  buildMonth, dayAriaLabel, monthBounds, mondayIndex, shiftMonth,
 } from '../src/lib/calendar';
 import { toClosures, upcomingClosures } from '../src/lib/closures';
 import { parisToInstant } from '../src/lib/time';
@@ -59,9 +59,5 @@ describe('navigation et libellés', () => {
     expect(dayAriaLabel('15 novembre', 1)).toBe('15 novembre : 1 fermeture');
     expect(dayAriaLabel('15 novembre', 2)).toBe('15 novembre : 2 fermetures');
     expect(dayAriaLabel('16 novembre', 0)).toBe('16 novembre');
-  });
-  it('résumé sur trois mois', () => {
-    const s = threeMonthSummary(list, now);
-    expect(s).toEqual({ from: '2026-11-10', to: '2027-02-09', count: 3 });
   });
 });

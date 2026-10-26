@@ -1,5 +1,5 @@
 import type { Closure } from './closures';
-import { addDays, addMonths, dateKeyOf, monthName, pad, parseDateKey, weekdayIndex } from './time';
+import { dateKeyOf, monthName, pad, parseDateKey, weekdayIndex } from './time';
 
 export interface DayCell {
   dateKey: string;
@@ -92,18 +92,4 @@ export function monthBounds(closures: Closure[], now: number): { min: MonthRef; 
 export function dayAriaLabel(label: string, count: number): string {
   if (count === 0) return label;
   return `${label} : ${count} fermeture${count > 1 ? 's' : ''}`;
-}
-
-export interface Summary {
-  from: string;
-  to: string;
-  count: number;
-}
-
-/** Résumé sur les trois prochains mois à partir d'aujourd'hui. */
-export function threeMonthSummary(closures: Closure[], now: number): Summary {
-  const from = dateKeyOf(now);
-  const to = addDays(addMonths(from, 3), -1);
-  const count = closures.filter((c) => c.dateKey >= from && c.dateKey <= to).length;
-  return { from, to, count };
 }

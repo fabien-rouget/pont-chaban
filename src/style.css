@@ -186,8 +186,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 
 /* ---------- Fermetures à venir ---------- */
 .upcoming { margin-top: 40px; }
-.section-title { margin: 0 0 4px; font: 700 clamp(1.5rem, 5vw, 2rem)/1.2 var(--serif); }
-.summary { min-height: 1.5em; margin: 0 0 16px; color: var(--muted); }
+.section-title { margin: 0 0 16px; font: 700 clamp(1.5rem, 5vw, 2rem)/1.2 var(--serif); }
 .tabs { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; }
 .tab { font: inherit; font-weight: 700; padding: 8px 20px; border: 0; border-radius: 999px; background: transparent; color: var(--text); cursor: pointer; }
 .tab[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
