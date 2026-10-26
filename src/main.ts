@@ -176,6 +176,10 @@ function renderFreshness(now: number): void {
       }
     }
   }
+  if (nodes.length === 0) {
+    const f = formatInstantNumeric(snap.fetchedAt);
+    nodes.push(el('span', {}, `Date de mise à jour de la source inconnue · données récupérées le ${f.date} à ${f.time}`));
+  }
   box.replaceChildren(...nodes.filter((p): p is Node | string => !!p));
 }
 
@@ -202,8 +206,8 @@ function renderCalendar(now: number): void {
   const view = state.viewMonth;
   const month = buildMonth(view.year, view.month, list, now);
 
-  const prev = el('button', { class: 'nav-btn', type: 'button', 'aria-label': 'Mois précédent' }, '‹');
-  const next = el('button', { class: 'nav-btn', type: 'button', 'aria-label': 'Mois suivant' }, '›');
+  const prev = el('button', { class: 'nav-btn', type: 'button', 'aria-label': 'Mois précédent' }, el('span', { 'aria-hidden': 'true' }, '‹'));
+  const next = el('button', { class: 'nav-btn', type: 'button', 'aria-label': 'Mois suivant' }, el('span', { 'aria-hidden': 'true' }, '›'));
   prev.disabled = monthKey(view) <= monthKey(bounds.min);
   next.disabled = monthKey(view) >= monthKey(bounds.max);
   prev.addEventListener('click', () => goToMonth(shiftMonth(view, -1)));
@@ -398,7 +402,7 @@ async function refresh(): Promise<void> {
 function init(): void {
   initTheme();
   $('countdown').addEventListener('click', (e) => {
-    if ((e.target as HTMLElement).id === 'retry') { state.failed = false; setText($('status-title'), 'Chargement des prévisions…'); void refresh(); }
+    if ((e.target as HTMLElement).id === 'retry') { state.failed = false; setText($('status-title'), 'Chargement…'); void refresh(); }
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
