@@ -260,7 +260,6 @@ function selectDay(key: string): void {
   state.focusDay = key;
   renderCalendar(Date.now());
   renderDetail(Date.now());
-  renderList(Date.now());
 }
 
 function onGridKey(e: KeyboardEvent, bounds: { min: MonthRef; max: MonthRef }): void {
@@ -330,7 +329,7 @@ function renderList(now: number): void {
   for (const c of list) {
     const tr = el('tr', {
       'data-date': c.dateKey,
-      class: [state.selectedDay === c.dateKey ? 'is-selected' : '', c.end <= now ? 'is-done' : ''].filter(Boolean).join(' '),
+      class: c.end <= now ? 'is-done' : undefined,
     },
       el('td', { class: 'ev' }, prettyLabel(c.label)),
       el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),

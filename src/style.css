@@ -235,7 +235,6 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .tbl { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 .tbl th { text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); background: var(--surface-2); padding: 10px 12px; }
 .tbl td { padding: 10px 12px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-.tbl tr.is-selected td { background: var(--accent-soft); }
 .tbl tr.is-done td { color: var(--muted); }
 .tbl .ev { font-weight: 700; }
 .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.8rem; background: var(--accent-soft); color: var(--text); }
@@ -253,9 +252,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
   .tbl { background: transparent; border: 0; box-shadow: none; }
   .tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .tbl tr { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; padding: 8px 4px; box-shadow: var(--shadow); }
-  .tbl tr.is-selected { border-color: var(--accent); border-width: 2px; }
   .tbl td { border: 0; padding: 4px 12px; display: flex; justify-content: space-between; gap: 12px; }
-  .tbl tr.is-selected td { background: transparent; }
   .tbl td::before { content: attr(data-label); color: var(--muted); font-size: 0.85rem; }
   .tbl td.ev { font-size: 1.05rem; flex-direction: column; gap: 0; }
   .tbl td.ev::before { display: none; }
