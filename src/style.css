@@ -197,8 +197,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .countdown__event { font-weight: 700; }
 .countdown__next { margin: 8px 0 0; color: var(--muted); font-size: 0.9rem; }
 
-.fresh { min-height: 44px; margin: 14px 0 0; font-size: 0.9rem; color: var(--muted); }
-.fresh__warn { margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn-text); }
+.fresh__warn { margin-top: 14px; padding: 8px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn-text); }
 .banner { margin-bottom: 14px; padding: 10px 14px; border-radius: 12px; font-weight: 600; }
 .banner--offline { background: var(--warn-bg); color: var(--warn-text); }
 

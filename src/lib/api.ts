@@ -125,8 +125,9 @@ export async function fetchRecords(now: number, base: string = BASE): Promise<Ra
   return out;
 }
 
-export async function fetchProcessedAt(base: string = BASE): Promise<string | null> {
-  const meta = await getJson<{ metas?: { default?: { data_processed?: string } } }>(base);
+export async function fetchProcessedAt(): Promise<string | null> {
+  type Meta = { metas?: { default?: { data_processed?: string } } };
+  const meta = await Promise.any(HOSTS.map((h) => getJson<Meta>(`${h}${PATH}`)));
   return meta.metas?.default?.data_processed ?? null;
 }
 
@@ -161,7 +162,7 @@ export async function load(now = Date.now()): Promise<LoadResult> {
     const base = `${host}${PATH}`;
     const [records, processedAt] = await Promise.all([
       fetchRecords(now, base),
-      fetchProcessedAt(base).catch(() => cached?.processedAt ?? null),
+      fetchProcessedAt().catch(() => cached?.processedAt ?? null),
     ]);
     const snapshot: Snapshot = { records, processedAt, fetchedAt: now, host };
     writeCache(snapshot);

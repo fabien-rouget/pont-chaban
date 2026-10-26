@@ -151,10 +151,11 @@ function renderHero(now: number): void {
 }
 
 function renderFreshness(now: number): void {
-  const box = $('freshness');
+  const line = $('freshness');
+  const stale = $('stale');
   const banner = $('offline');
   const snap = state.snapshot;
-  if (!snap) { box.replaceChildren(); banner.hidden = true; return; }
+  if (!snap) { line.textContent = ''; stale.replaceChildren(); banner.hidden = true; return; }
 
   banner.hidden = !state.offline;
   if (state.offline) {
@@ -165,19 +166,18 @@ function renderFreshness(now: number): void {
   }
   const via = snap.host && snap.host !== HOSTS[0] ? ` (via ${new URL(snap.host).hostname})` : '';
   const processed = snap.processedAt ? Date.parse(snap.processedAt) : NaN;
-  const nodes: Child[] = [];
   if (!Number.isNaN(processed)) {
     const f = formatInstantNumeric(processed);
-    nodes.push(el('span', {}, `Données mises à jour par Bordeaux Métropole le ${f.date} à ${f.time}${via}`));
-    if (now - processed > 8 * 24 * 60 * MINUTE) {
-      nodes.push(el('div', { class: 'fresh__warn', role: 'alert' },
-        'Attention : ces données ont plus de 8 jours. Les prévisions affichées peuvent ne plus être à jour.'));
-    }
+    line.textContent = `Données mises à jour par Bordeaux Métropole le ${f.date} à ${f.time}${via}`;
+    stale.replaceChildren(...(now - processed > 8 * 24 * 60 * MINUTE
+      ? [el('div', { class: 'fresh__warn', role: 'alert' },
+          'Attention : ces données ont plus de 8 jours. Les prévisions affichées peuvent ne plus être à jour.')]
+      : []));
   } else {
     const f = formatInstantNumeric(snap.fetchedAt);
-    nodes.push(el('span', {}, `Date de mise à jour de la source inconnue · données récupérées le ${f.date} à ${f.time}${via}`));
+    line.textContent = `Date de mise à jour de la source inconnue · données récupérées le ${f.date} à ${f.time}${via}`;
+    stale.replaceChildren();
   }
-  box.replaceChildren(...nodes.filter((p): p is Node | string => !!p));
 }
 
 /* ---------- Fermetures à venir ---------- */
