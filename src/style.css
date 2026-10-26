@@ -8,8 +8,9 @@
   --accent: #6b1e2e;
   --accent-contrast: #fffaf1;
   --accent-soft: #ecd5d9;
-  --open: #2b6f47;
-  --open-soft: #d8ecdf;
+  --open: #0a8f3e;
+  --open-bg: #19c453;
+  --open-on: #04210f;
   --warn-bg: #fff0c9;
   --warn-text: #5a4000;
   --sky-top: #f6e1c3;
@@ -39,8 +40,9 @@
   --accent: #e8a0ab;
   --accent-contrast: #2b1017;
   --accent-soft: #4a2630;
-  --open: #7fd1a0;
-  --open-soft: #1f3a2b;
+  --open: #2ee66b;
+  --open-bg: #2ee66b;
+  --open-on: #04210f;
   --warn-bg: #4a3a10;
   --warn-text: #ffe8a8;
   --sky-top: #3a2430;
@@ -68,8 +70,9 @@
     --accent: #e8a0ab;
     --accent-contrast: #2b1017;
     --accent-soft: #4a2630;
-    --open: #7fd1a0;
-    --open-soft: #1f3a2b;
+    --open: #2ee66b;
+    --open-bg: #2ee66b;
+    --open-on: #04210f;
     --warn-bg: #4a3a10;
     --warn-text: #ffe8a8;
     --sky-top: #3a2430;
@@ -121,7 +124,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
   font-weight: 700; font-size: 0.9rem; background: var(--surface-2); color: var(--text);
 }
 .pill__dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
-.pill--open { background: var(--open-soft); color: var(--open); }
+.pill--open { background: var(--open-bg); color: var(--open-on); }
 .pill--closed { background: var(--accent); color: var(--accent-contrast); }
 .pill--closed .pill__dot { border-radius: 2px; }
 
