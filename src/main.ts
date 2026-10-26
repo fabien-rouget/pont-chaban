@@ -103,7 +103,7 @@ function renderHero(now: number): void {
 
   const status: Status = computeStatus(state.all, now);
   const closed = status.state === 'closed';
-  setText(title, closed ? 'Le pont est fermé.' : 'Le pont est ouvert.');
+  setText(title, closed ? 'Pont fermé à la circulation' : 'Pont ouvert à la circulation');
   title.className = `hero__title ${closed ? 'is-closed' : 'is-open'}`;
   pill.className = `pill ${closed ? 'pill--closed' : 'pill--open'}`;
   setText($('pill-text'), closed ? 'Fermé' : 'Ouvert');
