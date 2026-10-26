@@ -1,0 +1,15 @@
+name: Diagnostic API
+on: workflow_dispatch
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sonder l'API avec une origine de navigateur
+        run: |
+          U='https://datahub.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/previsions_pont_chaban'
+          for variant in "records?limit=2" ""; do
+            echo "::notice title=URL::$U/$variant"
+            curl -sS -m 30 -i -H 'Origin: https://fabien-rouget.github.io' -H 'Accept: application/json' "$U/$variant" 2>&1 | head -c 1800 | tr '\r' ' ' | while IFS= read -r l; do echo "::notice::${l:0:300}"; done
+          done
+          echo "::notice title=OPTIONS::"
+          curl -sS -m 30 -i -X OPTIONS -H 'Origin: https://fabien-rouget.github.io' -H 'Access-Control-Request-Method: GET' "$U/records?limit=1" 2>&1 | head -c 1200 | tr '\r' ' ' | while IFS= read -r l; do echo "::notice::${l:0:300}"; done
