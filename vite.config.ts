@@ -9,7 +9,7 @@ const API_ORIGINS = [
 ];
 
 export default defineConfig({
-  base: '/pont-chaban/',
+  base: '/',
   build: { target: 'es2022' },
   test: { environment: 'node', include: ['tests/**/*.test.ts'] },
   plugins: [
@@ -22,9 +22,9 @@ export default defineConfig({
         description:
           "État du pont Chaban-Delmas à Bordeaux et fermetures à venir, d'après les prévisions officielles de Bordeaux Métropole.",
         lang: 'fr',
-        start_url: '/pont-chaban/',
-        scope: '/pont-chaban/',
-        id: '/pont-chaban/',
+        start_url: '/',
+        scope: '/',
+        id: '/',
         display: 'standalone',
         background_color: '#f7f0e4',
         theme_color: '#6b1e2e',
@@ -37,7 +37,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
-        navigateFallback: '/pont-chaban/index.html',
+        navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

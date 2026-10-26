@@ -4,7 +4,7 @@ PWA mono-page (mobile + desktop) qui affiche l'état du **pont Chaban-Delmas** (
 
 > Application indépendante, non officielle. L'état affiché est **déduit du planning officiel**, ce n'est pas une mesure en temps réel. Les créneaux restent sous réserve de confirmation de la Capitainerie du Grand Port Maritime de Bordeaux.
 
-Application : https://fabien-rouget.github.io/pont-chaban/
+Application : https://chaban.fabien-rouget.fr/
 
 ## Source de données
 
@@ -22,7 +22,7 @@ Aucun cookie, aucun traceur.
 
 ```sh
 npm install
-npm run dev        # serveur de développement : http://localhost:5173/pont-chaban/
+npm run dev        # serveur de développement : http://localhost:5173/
 npm test           # tests unitaires (Vitest)
 npm run build      # typecheck + build dans dist/
 npm run preview    # prévisualiser le build
@@ -34,7 +34,7 @@ Structure : `src/lib/time.ts` (dates Europe/Paris), `closures.ts` (fermetures et
 ## Déploiement
 
 GitHub Actions (`.github/workflows/deploy.yml`) : tests, build puis déploiement sur GitHub Pages à chaque push sur `master` (ou `main`).
-Prérequis : dans *Settings → Pages*, choisir **Source : GitHub Actions**. Le `base` de Vite est `/pont-chaban/`.
+Prérequis : dans *Settings → Pages*, choisir **Source : GitHub Actions**. Le site est servi à la racine d'un domaine personnalisé (`base` de Vite : `/`). Avec l'URL de projet GitHub Pages (`/<utilisateur>/pont-chaban/`), il faudrait remettre `base`, `start_url`, `scope`, `id` et `navigateFallback` de `vite.config.ts` sur `/pont-chaban/`.
 
 ## Licence
 
