@@ -7,6 +7,21 @@ const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200
 afterEach(() => vi.unstubAllGlobals());
 
 describe('load', () => {
+  it('bascule sur une autre adresse quand la première est en panne', async () => {
+    const seen: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      seen.push(new URL(url).host);
+      if (url.includes('datahub.')) return new Response('Bad Gateway', { status: 502 });
+      return url.includes('/records')
+        ? json({ total_count: sample.length, results: sample })
+        : json({ metas: { default: { data_processed: '2026-10-23T13:29:55+00:00' } } });
+    }));
+    const r = await load(Date.parse('2026-10-26T10:00:00Z'));
+    expect(r.offline).toBe(false);
+    expect(r.snapshot?.records).toHaveLength(sample.length);
+    expect(seen).toContain('opendata.bordeaux-metropole.fr');
+  });
+
   it('succès : enregistrements + fraîcheur', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string) =>
       url.includes('/records')

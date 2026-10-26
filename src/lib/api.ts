@@ -1,7 +1,19 @@
 import { dateKeyOf, addDays } from './time';
 import type { RawRecord } from './closures';
 
-const BASE = 'https://datahub.bordeaux-metropole.fr/api/explore/v2.1/catalog/datasets/previsions_pont_chaban';
+/**
+ * Adresses du même jeu de données (même schéma, mêmes enregistrements), dans l'ordre de préférence :
+ * le DataHub actuel, l'ancien portail de la Métropole, puis l'instance Opendatasoft d'origine.
+ */
+export const HOSTS = [
+  'https://datahub.bordeaux-metropole.fr',
+  'https://opendata.bordeaux-metropole.fr',
+  'https://scnbdx.opendatasoft.com',
+] as const;
+const PATH = '/api/explore/v2.1/catalog/datasets/previsions_pont_chaban';
+const BASE = `${HOSTS[0]}${PATH}`;
+/** Dernière adresse qui a répondu : essayée en premier la fois suivante. */
+let preferred: string | null = null;
 const CACHE_KEY = 'pont-chaban:data:v1';
 const PAGE = 100;
 
@@ -34,27 +46,62 @@ class HttpError extends Error {
 }
 
 
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS), headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new HttpError(res.status);
-  return (await res.json()) as T;
+async function getJson<T>(url: string, outer?: AbortSignal): Promise<T> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(new DOMException('timeout', 'TimeoutError')), REQUEST_TIMEOUT_MS);
+  outer?.addEventListener('abort', () => ctrl.abort());
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+    if (!res.ok) throw new HttpError(res.status);
+    return (await res.json()) as T;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-export function recordsUrl(yesterday: string, offset: number): string {
+/** Résume les échecs de toutes les adresses : panne HTTP > délai dépassé > autre. */
+function summarize(errors: unknown[]): unknown {
+  return (
+    errors.find((e) => e instanceof HttpError) ??
+    errors.find((e) => e instanceof DOMException && e.name === 'TimeoutError') ??
+    errors[0]
+  );
+}
+
+/** Interroge toutes les adresses en parallèle et retient la première qui répond correctement. */
+async function pickHost(): Promise<string> {
+  const ordered = preferred ? [preferred, ...HOSTS.filter((h) => h !== preferred)] : [...HOSTS];
+  const ctrls = ordered.map(() => new AbortController());
+  try {
+    const winner = await Promise.any(
+      ordered.map(async (host, i) => {
+        await getJson(`${host}${PATH}/records?limit=1`, ctrls[i].signal);
+        return host;
+      }),
+    );
+    ctrls.forEach((c) => c.abort());
+    preferred = winner;
+    return winner;
+  } catch (e) {
+    throw e instanceof AggregateError ? summarize(e.errors) : e;
+  }
+}
+
+export function recordsUrl(yesterday: string, offset: number, base: string = BASE): string {
   const q = new URLSearchParams({
     where: `date_passage>=date'${yesterday}'`,
     order_by: 'date_passage,fermeture_a_la_circulation',
     limit: String(PAGE),
     offset: String(offset),
   });
-  return `${BASE}/records?${q}`;
+  return `${base}/records?${q}`;
 }
 
-export async function fetchRecords(now: number): Promise<RawRecord[]> {
+export async function fetchRecords(now: number, base: string = BASE): Promise<RawRecord[]> {
   const yesterday = addDays(dateKeyOf(now), -1);
   const out: RawRecord[] = [];
   for (let offset = 0; offset < 2000; offset += PAGE) {
-    const page = await getJson<{ total_count?: number; results?: RawRecord[] }>(recordsUrl(yesterday, offset));
+    const page = await getJson<{ total_count?: number; results?: RawRecord[] }>(recordsUrl(yesterday, offset, base));
     const results = page.results ?? [];
     out.push(...results);
     if (results.length < PAGE || out.length >= (page.total_count ?? 0)) break;
@@ -62,8 +109,8 @@ export async function fetchRecords(now: number): Promise<RawRecord[]> {
   return out;
 }
 
-export async function fetchProcessedAt(): Promise<string | null> {
-  const meta = await getJson<{ metas?: { default?: { data_processed?: string } } }>(BASE);
+export async function fetchProcessedAt(base: string = BASE): Promise<string | null> {
+  const meta = await getJson<{ metas?: { default?: { data_processed?: string } } }>(base);
   return meta.metas?.default?.data_processed ?? null;
 }
 
@@ -94,9 +141,10 @@ function writeCache(s: Snapshot): void {
 export async function load(now = Date.now()): Promise<LoadResult> {
   const cached = readCache();
   try {
+    const base = `${await pickHost()}${PATH}`;
     const [records, processedAt] = await Promise.all([
-      fetchRecords(now),
-      fetchProcessedAt().catch(() => cached?.processedAt ?? null),
+      fetchRecords(now, base),
+      fetchProcessedAt(base).catch(() => cached?.processedAt ?? null),
     ]);
     const snapshot: Snapshot = { records, processedAt, fetchedAt: now };
     writeCache(snapshot);
@@ -109,6 +157,5 @@ export async function load(now = Date.now()): Promise<LoadResult> {
   }
 }
 
-export const DATASET_URL =
-  'https://datahub.bordeaux-metropole.fr/explore/dataset/previsions_pont_chaban/information/';
+export const DATASET_URL = `${HOSTS[0]}/explore/dataset/previsions_pont_chaban/information/`;
 export const OFFICIAL_URL = 'https://sedeplacer.bordeaux-metropole.fr/previsions-fermetures-pont-chaban-delmas';

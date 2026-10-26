@@ -2,7 +2,11 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const API_ORIGIN = 'https://datahub.bordeaux-metropole.fr';
+const API_ORIGINS = [
+  'https://datahub.bordeaux-metropole.fr',
+  'https://opendata.bordeaux-metropole.fr',
+  'https://scnbdx.opendatasoft.com',
+];
 
 export default defineConfig({
   base: '/pont-chaban/',
@@ -37,7 +41,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.origin === API_ORIGIN,
+            urlPattern: ({ url }) => API_ORIGINS.includes(url.origin),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-bordeaux-metropole',
