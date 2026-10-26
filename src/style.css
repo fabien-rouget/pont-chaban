@@ -125,10 +125,10 @@ a { color: var(--accent); text-underline-offset: 2px; }
 /* ---------- Bloc principal ---------- */
 main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .hero { max-width: 640px; margin: 0 auto; padding-top: 24px; }
-.hero__title { min-height: 1.1em; margin: 0; font: 700 clamp(2rem, 7vw, 3rem)/1.1 var(--serif); letter-spacing: -0.01em; }
+.hero__title { min-height: 1.1em; margin: 0 0 16px; font: 700 clamp(2rem, 7vw, 3rem)/1.1 var(--serif); letter-spacing: -0.01em; }
+@media (max-width: 640px) { .hero__title { min-height: 2.2em; } }
 .hero__title.is-open { color: var(--open); }
 .hero__title.is-closed { color: var(--accent); }
-.hero__sub { margin: 6px 0 16px; color: var(--muted); font-size: 0.95rem; }
 
 .bridge { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: var(--shadow); }
 .bridge__sun { fill: #f0b45a; opacity: 0.85; }

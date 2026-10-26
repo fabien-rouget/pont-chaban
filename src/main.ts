@@ -150,11 +150,13 @@ function renderHero(now: number): void {
   box.replaceChildren(...parts.filter((p): p is Node | string => !!p));
 }
 
+const SOURCE_NOTE = 'Selon les prévisions officielles de Bordeaux Métropole, pas en temps réel.';
+
 function renderFreshness(now: number): void {
   const box = $('freshness');
   const banner = $('offline');
   const snap = state.snapshot;
-  if (!snap) { box.replaceChildren(); banner.hidden = true; return; }
+  if (!snap) { box.replaceChildren(SOURCE_NOTE); banner.hidden = true; return; }
 
   banner.hidden = !state.offline;
   if (state.offline) {
@@ -163,22 +165,19 @@ function renderFreshness(now: number): void {
       ? `Hors ligne – données du ${f.date} à ${f.time}. Le service officiel de Bordeaux Métropole est en panne ou ne répond pas, ces prévisions peuvent ne plus être à jour.`
       : `Hors ligne – données du ${f.date} à ${f.time}`;
   }
+  const via = snap.host && snap.host !== HOSTS[0] ? ` (via ${new URL(snap.host).hostname})` : '';
+  const processed = snap.processedAt ? Date.parse(snap.processedAt) : NaN;
   const nodes: Child[] = [];
-  if (snap.processedAt) {
-    const ms = Date.parse(snap.processedAt);
-    if (!Number.isNaN(ms)) {
-      const f = formatInstantNumeric(ms);
-      const via = snap.host && snap.host !== HOSTS[0] ? ` · via ${new URL(snap.host).hostname}` : '';
-      nodes.push(el('span', {}, `Données Bordeaux Métropole mises à jour le ${f.date} à ${f.time}${via}`));
-      if (now - ms > 8 * 24 * 60 * MINUTE) {
-        nodes.push(el('div', { class: 'fresh__warn', role: 'alert' },
-          'Attention : ces données ont plus de 8 jours. Les prévisions affichées peuvent ne plus être à jour.'));
-      }
+  if (!Number.isNaN(processed)) {
+    const f = formatInstantNumeric(processed);
+    nodes.push(el('span', {}, `${SOURCE_NOTE} Données mises à jour le ${f.date} à ${f.time}${via}.`));
+    if (now - processed > 8 * 24 * 60 * MINUTE) {
+      nodes.push(el('div', { class: 'fresh__warn', role: 'alert' },
+        'Attention : ces données ont plus de 8 jours. Les prévisions affichées peuvent ne plus être à jour.'));
     }
-  }
-  if (nodes.length === 0) {
+  } else {
     const f = formatInstantNumeric(snap.fetchedAt);
-    nodes.push(el('span', {}, `Date de mise à jour de la source inconnue · données récupérées le ${f.date} à ${f.time}`));
+    nodes.push(el('span', {}, `${SOURCE_NOTE} Date de mise à jour de la source inconnue, données récupérées le ${f.date} à ${f.time}${via}.`));
   }
   box.replaceChildren(...nodes.filter((p): p is Node | string => !!p));
 }
