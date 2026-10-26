@@ -19,6 +19,9 @@
   --steel: #6b1e2e;
   --steel-light: #9a4455;
   --deck: #3b2a2d;
+  --car-1: #d98a2b;
+  --car-2: #2f7a9a;
+  --car-3: #f1e6d2;
   --shadow: 0 1px 2px rgb(60 30 30 / 0.08), 0 8px 24px rgb(60 30 30 / 0.08);
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman', serif;
   --sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -47,6 +50,9 @@
   --steel: #e8a0ab;
   --steel-light: #c27582;
   --deck: #f4eadc;
+  --car-1: #f0a640;
+  --car-2: #5fb3d3;
+  --car-3: #d9c8ae;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
   color-scheme: dark;
 }
@@ -73,6 +79,9 @@
     --steel: #e8a0ab;
     --steel-light: #c27582;
     --deck: #f4eadc;
+    --car-1: #f0a640;
+    --car-2: #5fb3d3;
+    --car-3: #d9c8ae;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
     color-scheme: dark;
   }
@@ -149,12 +158,26 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
   transition: transform 1.8s cubic-bezier(0.45, 0, 0.25, 1);
 }
 .bridge.is-closed .bridge__deck { transform: translateY(-96px); }
-.bridge__boat { opacity: 0; transition: opacity 0.8s; transform: translateX(-60px); }
-.bridge.is-closed .bridge__boat { opacity: 1; animation: sail 16s linear 1.2s infinite; }
+.bridge__boat { opacity: 0; transform: translateX(240px); transition: opacity 0.4s; transform-box: fill-box; transform-origin: 50% 85%; }
+.bridge.is-closed .bridge__boat { opacity: 1; transition: opacity 0.9s 0.9s; animation: bob 5s ease-in-out 1.8s infinite; }
+@keyframes bob {
+  0%, 100% { transform: translateX(240px) translateY(0) rotate(-0.8deg); }
+  50% { transform: translateX(240px) translateY(-2.5px) rotate(0.8deg); }
+}
+.bridge__traffic { opacity: 0; transition: opacity 0.25s; }
+.bridge:not(.is-closed) .bridge__traffic { opacity: 1; transition: opacity 0.5s 1.6s; }
+.car { transform: translateX(-40px); animation: drive 10s linear infinite; }
+.car--2 { animation-delay: -3.4s; animation-duration: 12s; }
+.car--3 { animation-delay: -7s; animation-duration: 9s; }
+.car-body { fill: var(--car-1); }
+.car--2 .car-body { fill: var(--car-2); }
+.car--3 .car-body { fill: var(--car-3); }
+.car-win { fill: var(--sky-bottom); opacity: 0.9; }
+.car-wheel { fill: #1d1214; stroke: var(--surface); stroke-width: 0.8; }
+@keyframes drive { from { transform: translateX(-40px); } to { transform: translateX(500px); } }
 .boat-hull { fill: var(--deck); }
 .boat-mast { stroke: var(--deck); stroke-width: 2; }
 .boat-sail { fill: var(--surface); stroke: var(--deck); stroke-width: 1; }
-@keyframes sail { from { transform: translateX(-60px); } to { transform: translateX(540px); } }
 
 .card {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
@@ -264,7 +287,9 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .footer__small { font-size: 0.8rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bridge__deck { transition: none; }
-  .wave, .bridge.is-closed .bridge__boat { animation: none; }
-  .bridge.is-closed .bridge__boat { transform: translateX(240px); }
+  .bridge__deck, .bridge__traffic, .bridge__boat { transition: none !important; }
+  .wave, .car, .bridge.is-closed .bridge__boat { animation: none; }
+  .car--1 { transform: translateX(70px); }
+  .car--2 { transform: translateX(190px); }
+  .car--3 { transform: translateX(330px); }
 }
