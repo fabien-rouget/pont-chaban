@@ -102,6 +102,7 @@ function renderHero(now: number): void {
     title.className = 'hero__title';
     pill.className = 'pill pill--loading';
     setText($('pill-text'), 'Inconnu');
+    box.classList.remove('countdown--open', 'countdown--closed');
     box.replaceChildren(
       el('p', { class: 'countdown__label' }, source
         ? (state.reason === 'timeout'
@@ -124,7 +125,8 @@ function renderHero(now: number): void {
   bridge.classList.toggle('is-closed', closed);
 
   const target = closed ? status.current : status.next;
-  box.classList.remove('countdown--soon');
+  box.classList.toggle('countdown--open', !closed);
+  box.classList.toggle('countdown--closed', closed);
   if (!target) {
     box.replaceChildren(
       el('p', { class: 'countdown__label' }, 'Prochaine fermeture'),
@@ -160,7 +162,6 @@ function renderHero(now: number): void {
   );
   // Fermeture dans moins de 24 h : on met l'heure en évidence (« Aujourd'hui à 07:00 »).
   const soon = !closed && target.start - now > 0 && target.start - now < 24 * 60 * MINUTE;
-  box.classList.toggle('countdown--soon', soon);
   const parts: Child[] = [
     soon ? el('p', { class: 'countdown__soon' },
       `${dateKeyOf(target.start) === dateKeyOf(now) ? "Aujourd'hui" : 'Demain'} à ${target.startTime}`) : null,
