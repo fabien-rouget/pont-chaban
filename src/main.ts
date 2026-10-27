@@ -88,6 +88,8 @@ function setText(node: HTMLElement, text: string): void {
   if (node.textContent !== text) node.textContent = text;
 }
 
+const OFFLINE_HINT = "Une première connexion est nécessaire : une fois les prévisions chargées, l'appli reste utilisable hors ligne sur cet appareil.";
+
 function renderHero(now: number): void {
   const title = $('status-title');
   const pill = $('pill');
@@ -103,9 +105,10 @@ function renderHero(now: number): void {
     box.replaceChildren(
       el('p', { class: 'countdown__label' }, source
         ? (state.reason === 'timeout'
-          ? "Le service de données officiel de Bordeaux Métropole ne répond pas (délai de 10 secondes dépassé) : il est probablement en panne ou surchargé. Les prévisions de fermeture ne peuvent pas être récupérées. Nouvel essai automatique toutes les minutes."
-          : "Le service de données officiel de Bordeaux Métropole est actuellement en panne : les prévisions de fermeture ne peuvent pas être récupérées. Ce n'est pas un problème de votre appareil. Nouvel essai automatique toutes les minutes.")
-        : "Impossible de joindre le service de données de Bordeaux Métropole. Vérifiez votre connexion internet. Nouvel essai automatique toutes les minutes."),
+          ? "Le service de données officiel de Bordeaux Métropole ne répond pas (délai de 10 secondes dépassé) : il est probablement en panne ou surchargé. Les prévisions de fermeture ne peuvent pas être récupérées."
+          : "Le service de données officiel de Bordeaux Métropole est actuellement en panne : les prévisions de fermeture ne peuvent pas être récupérées. Ce n'est pas un problème de votre appareil.")
+        : "Impossible de joindre le service de données de Bordeaux Métropole. Vérifiez votre connexion internet."),
+      el('p', { class: 'countdown__next' }, `Nouvel essai automatique toutes les minutes. ${OFFLINE_HINT}`),
       el('button', { class: 'retry', type: 'button', id: 'retry' }, 'Réessayer'),
     );
     return;
@@ -131,23 +134,28 @@ function renderHero(now: number): void {
   }
 
   const label = closed ? 'Réouverture dans' : 'Prochaine fermeture dans';
-  const remaining = closed ? (status.reopensAt ?? target.end) - now : target.start - now;
-  const progress = closed ? Math.min(1, Math.max(0, (now - target.start) / (target.end - target.start))) : 0;
+  // Fermetures qui s'enchaînent sans interruption : on va jusqu'à la dernière réouverture.
+  const endMs = closed ? (status.reopensAt ?? target.end) : target.end;
+  const endTime = formatInstantNumeric(endMs).time;
+  const endDay = dateKeyOf(endMs);
+  const remaining = closed ? endMs - now : target.start - now;
+  const progress = closed ? Math.min(1, Math.max(0, (now - target.start) / (endMs - target.start))) : 0;
   const barAttrs = closed ? { class: 'frise__bar' } : { class: 'frise__bar frise__bar--idle' };
   const fill = el('span', { class: 'frise__fill' });
   fill.style.width = `${Math.round(progress * 100)}%`;
   const bar = el('div', barAttrs, closed ? fill : null);
+  const reopenLabel = endDay === target.dateKey ? 'Réouverture'
+    : endDay === addDays(target.dateKey, 1) ? 'Réouverture · lendemain'
+    : `Réouverture · ${formatShortDate(endDay)}`;
 
   const frise = el('div', { class: 'frise' },
     el('div', { class: 'frise__end' }, el('span', {}, `Fermeture · ${formatShortDate(target.dateKey)}`), el('strong', {}, target.startTime)),
     bar,
-    el('div', { class: 'frise__end frise__end--right' },
-      el('span', {}, `Réouverture${target.overnight ? ' · lendemain' : ` · ${formatShortDate(target.endDateKey)}`}`),
-      el('strong', {}, target.endTime)),
+    el('div', { class: 'frise__end frise__end--right' }, el('span', {}, reopenLabel), el('strong', {}, endTime)),
   );
   const meta = el('p', { class: 'countdown__meta' },
     el('span', { class: 'countdown__event' }, prettyLabel(target.label)),
-    el('span', {}, `Durée prévue : ${formatLength(target.end - target.start)}`),
+    el('span', {}, `Durée prévue : ${formatLength(endMs - target.start)}`),
   );
   const parts: Child[] = [
     el('p', { class: 'countdown__label' }, label),
@@ -391,10 +399,17 @@ async function refresh(): Promise<void> {
     return;
   }
   state.failed = false;
+  const unchanged = !!state.snapshot && state.offline === result.offline
+    && state.snapshot.processedAt === result.snapshot.processedAt
+    && JSON.stringify(state.snapshot.records) === JSON.stringify(result.snapshot.records);
   state.snapshot = result.snapshot;
   state.offline = result.offline;
-  state.all = toClosures(result.snapshot.records);
-  renderAll();
+  if (unchanged) {
+    tick();
+  } else {
+    state.all = toClosures(result.snapshot.records);
+    renderAll();
+  }
   if (result.offline) scheduleRetry(5 * MINUTE);
   else clearTimeout(retryTimer);
 }
@@ -433,6 +448,8 @@ function init(): void {
     if (age > 30 * MINUTE || state.offline) void refresh(); else tick();
   });
   addEventListener('online', () => void refresh());
+  // Appli laissée ouverte : recharge les données toutes les 30 minutes tant qu'elle est visible.
+  setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 30 * MINUTE);
   addEventListener('resize', fitTitle);
   void refresh();
   scheduleTick();
