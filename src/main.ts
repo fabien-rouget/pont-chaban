@@ -124,6 +124,7 @@ function renderHero(now: number): void {
   bridge.classList.toggle('is-closed', closed);
 
   const target = closed ? status.current : status.next;
+  box.classList.remove('countdown--soon');
   if (!target) {
     box.replaceChildren(
       el('p', { class: 'countdown__label' }, 'Prochaine fermeture'),
@@ -157,7 +158,12 @@ function renderHero(now: number): void {
     el('span', { class: 'countdown__event' }, prettyLabel(target.label)),
     el('span', {}, `Durée prévue : ${formatLength(endMs - target.start)}`),
   );
+  // Fermeture dans moins de 24 h : on met l'heure en évidence (« Aujourd'hui à 07:00 »).
+  const soon = !closed && target.start - now > 0 && target.start - now < 24 * 60 * MINUTE;
+  box.classList.toggle('countdown--soon', soon);
   const parts: Child[] = [
+    soon ? el('p', { class: 'countdown__soon' },
+      `${dateKeyOf(target.start) === dateKeyOf(now) ? "Aujourd'hui" : 'Demain'} à ${target.startTime}`) : null,
     el('p', { class: 'countdown__label' }, label),
     el('p', { class: 'countdown__value' }, formatCountdown(remaining)),
     frise, meta,
