@@ -320,7 +320,7 @@ function closuresTable(items: Closure[], now: number, label: string, withRelativ
   const current = all.find((c) => c.start <= now && now < c.end);
   const next = all.find((c) => c.start > now);
   const head = el('tr', {},
-    ...['Événement', 'Date de passage', 'Fermeture à la circulation', 'Réouverture à la circulation', 'Type de fermeture']
+    ...['Événement', 'Date de fermeture', 'Fermeture à la circulation', 'Réouverture à la circulation', 'Type de fermeture']
       .map((h) => el('th', { scope: 'col' }, h)));
   const body = el('tbody');
   for (const c of items) {
@@ -331,7 +331,7 @@ function closuresTable(items: Closure[], now: number, label: string, withRelativ
     sub.push(done ? 'Terminée' : c === current || !withRelative ? null : relativeDay(daysBetween(today, c.dateKey)));
     body.append(el('tr', { 'data-date': c.dateKey, class: done ? 'is-done' : undefined },
       el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
-      el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
+      el('td', { 'data-label': 'Date de fermeture' }, formatNumericDate(c.dateKey)),
       el('td', { 'data-label': 'Fermeture' }, c.startTime),
       el('td', { 'data-label': 'Réouverture' }, c.endTime),
       el('td', { 'data-label': 'Type' }, el('span', { class: 'tag' }, typeLabel(c.type))),
