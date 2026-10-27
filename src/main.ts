@@ -262,7 +262,7 @@ function renderCalendar(now: number): void {
   root.replaceChildren(
     el('div', { class: 'calendar__head' }, prev, title, next),
     grid,
-    el('p', { class: 'cal-legend' }, '● jour avec au moins une fermeture. Une fermeture de nuit est marquée à sa date de passage.'),
+    el('p', { class: 'cal-legend' }, '● jour avec au moins une fermeture.'),
   );
   if (state.focusDay) {
     root.querySelector<HTMLButtonElement>(`[data-date="${state.focusDay}"]`)?.focus();
