@@ -303,8 +303,45 @@ function shiftMonthKey(key: string, delta: number): string {
   return `${m.year}-${String(m.month).padStart(2, '0')}-${String(Math.min(day, last)).padStart(2, '0')}`;
 }
 
+/** « aujourd'hui », « demain », « dans 12 jours ». */
+function relativeDay(days: number): string {
+  if (days <= 0) return "aujourd'hui";
+  return days === 1 ? 'demain' : `dans ${days} jours`;
+}
+
+/**
+ * Tableau des fermetures donné (cartes sur mobile) : même présentation pour la liste et pour le détail
+ * d'un jour du calendrier. Les repères « En cours » / « Prochaine » se calculent sur toutes les fermetures à venir.
+ */
+function closuresTable(items: Closure[], now: number, label: string): HTMLTableElement {
+  const all = visibleClosures(now);
+  const today = dateKeyOf(now);
+  const current = all.find((c) => c.start <= now && now < c.end);
+  const next = all.find((c) => c.start > now);
+  const head = el('tr', {},
+    ...['Événement', 'Date de passage', 'Fermeture à la circulation', 'Réouverture à la circulation', 'Type de fermeture']
+      .map((h) => el('th', { scope: 'col' }, h)));
+  const body = el('tbody');
+  for (const c of items) {
+    const done = c.end <= now;
+    const sub: Child[] = [];
+    if (c === current) sub.push(el('span', { class: 'chip chip--now' }, 'En cours'));
+    else if (c === next) sub.push(el('span', { class: 'chip chip--next' }, 'Prochaine'));
+    sub.push(done ? 'Terminée' : c === current ? null : relativeDay(daysBetween(today, c.dateKey)));
+    body.append(el('tr', { 'data-date': c.dateKey, class: done ? 'is-done' : undefined },
+      el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
+      el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
+      el('td', { 'data-label': 'Fermeture' }, c.startTime),
+      el('td', { 'data-label': 'Réouverture' }, el('span', {}, c.endTime, c.overnight ? el('span', { class: 'next-day' }, ' (lendemain)') : null)),
+      el('td', { 'data-label': 'Type' }, el('span', { class: 'tag' }, typeLabel(c.type))),
+    ));
+  }
+  return el('table', { class: 'tbl', 'aria-label': label }, el('thead', {}, head), body);
+}
+
 function renderDetail(now: number): void {
   const box = $('detail');
+  box.classList.remove('detail--bare');
   if (!state.snapshot) { box.replaceChildren(); return; }
   const key = state.selectedDay;
   const items = key ? (groupByDay(visibleClosures(now)).get(key) ?? []) : [];
@@ -317,25 +354,11 @@ function renderDetail(now: number): void {
       : `Aucune fermeture prévue en ${monthName(vm.month)} ${vm.year}.`));
     return;
   }
-  const ul = el('ul');
-  for (const c of items) {
-    const when = c.overnight
-      ? `de ${c.startTime} jusqu'à ${c.endTime} le lendemain`
-      : `de ${c.startTime} à ${c.endTime}`;
-    ul.append(el('li', {},
-      el('strong', {}, prettyLabel(c.label)),
-      ` : ${when} (${formatLength(c.end - c.start)}). Fermeture ${c.type ? c.type.toLowerCase() : 'non précisée'}.`));
-  }
-  box.replaceChildren(el('h3', {}, formatLongDate(key)), ul);
+  box.classList.add('detail--bare');
+  box.replaceChildren(el('h3', {}, formatLongDate(key)), closuresTable(items, now, `Fermetures du ${formatLongDate(key)}`));
 }
 
 const MAX_LIST = 10;
-
-/** « aujourd'hui », « demain », « dans 12 jours ». */
-function relativeDay(days: number): string {
-  if (days <= 0) return "aujourd'hui";
-  return days === 1 ? 'demain' : `dans ${days} jours`;
-}
 
 function renderList(now: number): void {
   const root = $('list');
@@ -349,32 +372,7 @@ function renderList(now: number): void {
     root.replaceChildren(el('p', { class: 'empty' }, 'Aucune fermeture à venir dans les prévisions officielles.'));
     return;
   }
-  const today = dateKeyOf(now);
-  const current = list.find((c) => c.start <= now && now < c.end);
-  const next = list.find((c) => c.start > now);
-  const head = el('tr', {},
-    ...['Événement', 'Date de passage', 'Fermeture à la circulation', 'Réouverture à la circulation', 'Type de fermeture']
-      .map((h) => el('th', { scope: 'col' }, h)));
-  const body = el('tbody');
-  for (const c of list) {
-    const done = c.end <= now;
-    const sub: Child[] = [];
-    if (c === current) sub.push(el('span', { class: 'chip chip--now' }, 'En cours'));
-    else if (c === next) sub.push(el('span', { class: 'chip chip--next' }, 'Prochaine'));
-    sub.push(done ? 'Terminée' : c === current ? null : relativeDay(daysBetween(today, c.dateKey)));
-    const tr = el('tr', {
-      'data-date': c.dateKey,
-      class: done ? 'is-done' : undefined,
-    },
-      el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
-      el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
-      el('td', { 'data-label': 'Fermeture' }, c.startTime),
-      el('td', { 'data-label': 'Réouverture' }, el('span', {}, c.endTime, c.overnight ? el('span', { class: 'next-day' }, ' (lendemain)') : null)),
-      el('td', { 'data-label': 'Type' }, el('span', { class: 'tag' }, typeLabel(c.type))),
-    );
-    body.append(tr);
-  }
-  const parts: Node[] = [el('table', { class: 'tbl', 'aria-label': 'Fermetures à venir' }, el('thead', {}, head), body)];
+  const parts: Node[] = [closuresTable(list, now, 'Fermetures à venir')];
   if (all.length > list.length) {
     parts.push(el('p', { class: 'list-more' }, `Les ${list.length} prochaines fermetures sur ${all.length}. Les suivantes sont visibles dans le calendrier.`));
   }
