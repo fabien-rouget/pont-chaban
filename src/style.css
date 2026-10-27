@@ -107,8 +107,13 @@ a { color: var(--accent); text-underline-offset: 2px; }
 
 .pill {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px;
-  font-weight: 700; font-size: 0.9rem; background: var(--surface-2); color: var(--text);
+  font-weight: 700; font-size: 0.9rem; background: var(--surface-2); color: var(--text); white-space: nowrap;
 }
+/* Sur mobile, le nom écrit laisse la place au badge complet ; il reste lu par les lecteurs d'écran. */
+@media (max-width: 559px) {
+  .brand__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media (max-width: 359px) { .pill { font-size: 0.78rem; padding: 5px 9px; gap: 6px; } }
 .pill__dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
 .pill--open { background: var(--open-bg); color: var(--open-on); }
 .pill--closed { background: var(--closed-bg); color: var(--closed-on); }
@@ -122,10 +127,9 @@ a { color: var(--accent); text-underline-offset: 2px; }
 
 /* ---------- Bloc principal ---------- */
 main { max-width: 1120px; margin: 0 auto; padding: 0 16px 24px; }
-.hero { max-width: 640px; margin: 0 auto; padding-top: 24px; container-type: inline-size; }
-.hero__title { min-height: 1.1em; margin: 0 0 16px; font: 700 min(3rem, calc(100cqw / 11.8))/1.1 var(--serif); letter-spacing: -0.01em; }
-.hero__title.is-open { color: var(--open); }
-.hero__title.is-closed { color: var(--closed); }
+.hero { max-width: 640px; margin: 0 auto; padding-top: 24px; }
+/* Le grand titre est remplacé par le badge de l'en-tête ; il reste dans la page pour les lecteurs d'écran. */
+.hero__title { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .bridge { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: var(--shadow); }
 .bridge__sun { fill: #f0b45a; opacity: 0.85; }

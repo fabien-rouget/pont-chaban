@@ -66,24 +66,6 @@ function initTheme(): void {
 }
 
 /* ---------- Bloc principal ---------- */
-/**
- * Réduit la taille du titre d'état si besoin pour qu'il tienne sur une seule ligne :
- * la largeur du texte dépend de la police du système (Iowan Old Style sur iOS, etc.),
- * on la mesure donc sur l'appareil plutôt que de la deviner en CSS.
- */
-function fitTitle(): void {
-  const t = $('status-title');
-  t.style.fontSize = '';
-  t.style.whiteSpace = 'nowrap';
-  const avail = t.clientWidth;
-  const need = t.scrollWidth;
-  if (avail > 0 && need > avail) {
-    const base = parseFloat(getComputedStyle(t).fontSize);
-    t.style.fontSize = `${Math.max(16, Math.floor((base * avail / need - 0.5) * 10) / 10)}px`;
-  }
-  t.style.whiteSpace = '';
-}
-
 function setText(node: HTMLElement, text: string): void {
   if (node.textContent !== text) node.textContent = text;
 }
@@ -119,9 +101,8 @@ function renderHero(now: number): void {
   const status: Status = computeStatus(state.all, now);
   const closed = status.state === 'closed';
   setText(title, closed ? 'Pont fermé à la circulation' : 'Pont ouvert à la circulation');
-  title.className = `hero__title ${closed ? 'is-closed' : 'is-open'}`;
   pill.className = `pill ${closed ? 'pill--closed' : 'pill--open'}`;
-  setText($('pill-text'), closed ? 'Fermé' : 'Ouvert');
+  setText($('pill-text'), closed ? 'Fermé à la circulation' : 'Ouvert à la circulation');
   bridge.classList.toggle('is-closed', closed);
 
   const target = closed ? status.current : status.next;
@@ -405,7 +386,6 @@ function renderAll(): void {
   const now = Date.now();
   lastDayKey = dateKeyOf(now);
   renderHero(now);
-  fitTitle();
   renderFreshness(now);
   renderCalendar(now);
   renderDetail(now);
@@ -415,7 +395,7 @@ function renderAll(): void {
 function tick(): void {
   const now = Date.now();
   if (dateKeyOf(now) !== lastDayKey) renderAll();
-  else { renderHero(now); fitTitle(); renderFreshness(now); }
+  else { renderHero(now); renderFreshness(now); }
 }
 
 function scheduleTick(): void {
@@ -433,7 +413,6 @@ async function refresh(): Promise<void> {
     if (!state.snapshot) {
       state.failed = true;
       renderHero(Date.now());
-      fitTitle();
       scheduleRetry(MINUTE);
     }
     return;
@@ -490,7 +469,6 @@ function init(): void {
   addEventListener('online', () => void refresh());
   // Appli laissée ouverte : recharge les données toutes les 30 minutes tant qu'elle est visible.
   setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 30 * MINUTE);
-  addEventListener('resize', fitTitle);
   void refresh();
   scheduleTick();
 }
