@@ -342,6 +342,8 @@ function renderDetail(now: number): void {
   box.replaceChildren(el('h3', {}, formatLongDate(key)), ul);
 }
 
+const MAX_LIST = 10;
+
 /** « aujourd'hui », « demain », « dans 12 jours ». */
 function relativeDay(days: number): string {
   if (days <= 0) return "aujourd'hui";
@@ -352,7 +354,9 @@ function renderList(now: number): void {
   const root = $('list');
   const tab = $('tab-list');
   if (!state.snapshot) { root.replaceChildren(); tab.textContent = 'Liste'; return; }
-  const list = visibleClosures(now);
+  const all = visibleClosures(now);
+  // La liste ne montre que les 10 prochaines fermetures ; le calendrier permet de voir plus loin.
+  const list = all.slice(0, MAX_LIST);
   tab.textContent = `Liste · ${list.length}`;
   if (list.length === 0) {
     root.replaceChildren(el('p', { class: 'empty' }, 'Aucune fermeture à venir dans les prévisions officielles.'));
@@ -383,7 +387,11 @@ function renderList(now: number): void {
     );
     body.append(tr);
   }
-  root.replaceChildren(el('table', { class: 'tbl', 'aria-label': 'Fermetures à venir' }, el('thead', {}, head), body));
+  const parts: Node[] = [el('table', { class: 'tbl', 'aria-label': 'Fermetures à venir' }, el('thead', {}, head), body)];
+  if (all.length > list.length) {
+    parts.push(el('p', { class: 'list-more' }, `Les ${list.length} prochaines fermetures sur ${all.length}. Les suivantes sont visibles dans le calendrier.`));
+  }
+  root.replaceChildren(...parts);
 }
 
 /* ---------- Cycle de vie ---------- */
