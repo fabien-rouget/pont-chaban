@@ -313,7 +313,7 @@ function relativeDay(days: number): string {
  * Tableau des fermetures donné (cartes sur mobile) : même présentation pour la liste et pour le détail
  * d'un jour du calendrier. Les repères « En cours » / « Prochaine » se calculent sur toutes les fermetures à venir.
  */
-function closuresTable(items: Closure[], now: number, label: string): HTMLTableElement {
+function closuresTable(items: Closure[], now: number, label: string, withRelative: boolean): HTMLTableElement {
   const all = visibleClosures(now);
   const today = dateKeyOf(now);
   const current = all.find((c) => c.start <= now && now < c.end);
@@ -327,7 +327,7 @@ function closuresTable(items: Closure[], now: number, label: string): HTMLTableE
     const sub: Child[] = [];
     if (c === current) sub.push(el('span', { class: 'chip chip--now' }, 'En cours'));
     else if (c === next) sub.push(el('span', { class: 'chip chip--next' }, 'Prochaine'));
-    sub.push(done ? 'Terminée' : c === current ? null : relativeDay(daysBetween(today, c.dateKey)));
+    sub.push(done ? 'Terminée' : c === current || !withRelative ? null : relativeDay(daysBetween(today, c.dateKey)));
     body.append(el('tr', { 'data-date': c.dateKey, class: done ? 'is-done' : undefined },
       el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
       el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
@@ -355,7 +355,7 @@ function renderDetail(now: number): void {
     return;
   }
   box.classList.add('detail--bare');
-  box.replaceChildren(el('h3', {}, formatLongDate(key)), closuresTable(items, now, `Fermetures du ${formatLongDate(key)}`));
+  box.replaceChildren(el('h3', {}, formatLongDate(key)), closuresTable(items, now, `Fermetures du ${formatLongDate(key)}`, false));
 }
 
 const MAX_LIST = 10;
@@ -372,7 +372,7 @@ function renderList(now: number): void {
     root.replaceChildren(el('p', { class: 'empty' }, 'Aucune fermeture à venir dans les prévisions officielles.'));
     return;
   }
-  const parts: Node[] = [closuresTable(list, now, 'Fermetures à venir')];
+  const parts: Node[] = [closuresTable(list, now, 'Fermetures à venir', true)];
   if (all.length > list.length) {
     parts.push(el('p', { class: 'list-more' }, `Les ${list.length} prochaines fermetures sur ${all.length}. Les suivantes sont visibles dans le calendrier.`));
   }
