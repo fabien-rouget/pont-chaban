@@ -20,7 +20,11 @@ p{font:500 34px/1.3 var(--sans);color:var(--muted);margin:0}
 .bridge{width:520px;flex:none;box-shadow:var(--shadow)}
 </style>
 <div class="txt">
-<svg class="logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M7 9v14M25 9v14M7 9h18M9 17h14" stroke="#f7f0e4" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+<svg class="logo" viewBox="0 0 512 512"><rect class="brand__bg" width="512" height="512" rx="112"/><g class="brand__glyph" transform="translate(0 -22)">
+<rect x="120" y="120" width="48" height="280" rx="6"/><rect x="344" y="120" width="48" height="280" rx="6"/><rect x="120" y="120" width="272" height="30" rx="6"/>
+<rect x="48" y="338" width="80" height="24" rx="4"/><rect x="384" y="338" width="80" height="24" rx="4"/>
+<path class="brand__stays" d="M144 132L58 338M144 132L100 338M368 132L412 338M368 132L454 338"/>
+<rect x="168" y="196" width="176" height="24" rx="4"/><rect x="156" y="186" width="16" height="44" rx="4"/><rect x="340" y="186" width="16" height="44" rx="4"/></g></svg>
 <h1>Pont Chaban</h1><p>Pont Chaban-Delmas : état du pont et fermetures à venir</p></div>
 ${svg}`;
 
