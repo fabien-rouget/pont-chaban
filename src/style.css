@@ -11,6 +11,9 @@
   --open: #0a8f3e;
   --open-bg: #19c453;
   --open-on: #04210f;
+  --closed: #e0202e;
+  --closed-bg: #e0202e;
+  --closed-on: #ffffff;
   --warn-bg: #fff0c9;
   --warn-text: #5a4000;
   --sky-top: #f6e1c3;
@@ -43,6 +46,9 @@
   --open: #2ee66b;
   --open-bg: #2ee66b;
   --open-on: #04210f;
+  --closed: #ff4757;
+  --closed-bg: #ff4757;
+  --closed-on: #1b0508;
   --warn-bg: #4a3a10;
   --warn-text: #ffe8a8;
   --sky-top: #3a2430;
@@ -94,7 +100,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 }
 .pill__dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
 .pill--open { background: var(--open-bg); color: var(--open-on); }
-.pill--closed { background: var(--accent); color: var(--accent-contrast); }
+.pill--closed { background: var(--closed-bg); color: var(--closed-on); }
 .pill--closed .pill__dot { border-radius: 2px; }
 
 .icon-btn {
@@ -108,7 +114,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .hero { max-width: 640px; margin: 0 auto; padding-top: 24px; }
 .hero__title { min-height: 1.1em; margin: 0 0 16px; font: 700 min(3rem, calc((100vw - 32px) / 11.8))/1.1 var(--serif); letter-spacing: -0.01em; }
 .hero__title.is-open { color: var(--open); }
-.hero__title.is-closed { color: var(--accent); }
+.hero__title.is-closed { color: var(--closed); }
 
 .bridge { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: var(--shadow); }
 .bridge__sun { fill: #f0b45a; opacity: 0.85; }
@@ -162,7 +168,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 24px; }
 .frise__end strong { font-size: 1.15rem; color: var(--text); font-variant-numeric: tabular-nums; }
 .frise__end--right { text-align: right; align-items: flex-end; }
 .frise__bar { position: relative; height: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
-.frise__fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 999px; }
+.frise__fill { position: absolute; inset: 0 auto 0 0; background: var(--closed); border-radius: 999px; }
 .frise__bar--idle { background: repeating-linear-gradient(90deg, var(--accent-soft) 0 8px, var(--surface-2) 8px 16px); }
 .countdown__meta { margin: 12px 0 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font-size: 0.95rem; }
 .countdown__event { font-weight: 700; }
