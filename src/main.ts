@@ -8,8 +8,8 @@ import {
   computeStatus, prettyLabel, toClosures, typeLabel, upcomingClosures, type Closure, type Status,
 } from './lib/closures';
 import {
-  MINUTE, addDays, dateKeyOf, formatCountdown, formatDayMonth, formatInstantNumeric, formatLength,
-  formatLongDate, formatNumericDate, formatShortDate, parseDateKey,
+  MINUTE, addDays, daysBetween, dateKeyOf, formatCountdown, formatDayMonth, formatInstantNumeric, formatLength,
+  formatLongDate, formatNumericDate, formatShortDate, monthName, pad, parseDateKey,
 } from './lib/time';
 
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -316,7 +316,12 @@ function renderDetail(now: number): void {
   const key = state.selectedDay;
   const items = key ? (groupByDay(visibleClosures(now)).get(key) ?? []) : [];
   if (!key || items.length === 0) {
-    box.replaceChildren(el('p', { class: 'detail__hint' }, 'Sélectionnez un jour marqué d’un point pour voir le détail de la fermeture.'));
+    const vm = state.viewMonth;
+    const prefix = vm ? `${vm.year}-${pad(vm.month)}-` : '';
+    const monthHasClosure = !vm || visibleClosures(now).some((c) => c.dateKey.startsWith(prefix));
+    box.replaceChildren(el('p', { class: 'detail__hint' }, monthHasClosure || !vm
+      ? 'Sélectionnez un jour marqué d’un point pour voir le détail de la fermeture.'
+      : `Aucune fermeture prévue en ${monthName(vm.month)} ${vm.year}.`));
     return;
   }
   const ul = el('ul');
@@ -331,24 +336,40 @@ function renderDetail(now: number): void {
   box.replaceChildren(el('h3', {}, formatLongDate(key)), ul);
 }
 
+/** « aujourd'hui », « demain », « dans 12 jours ». */
+function relativeDay(days: number): string {
+  if (days <= 0) return "aujourd'hui";
+  return days === 1 ? 'demain' : `dans ${days} jours`;
+}
+
 function renderList(now: number): void {
   const root = $('list');
-  if (!state.snapshot) { root.replaceChildren(); return; }
+  const tab = $('tab-list');
+  if (!state.snapshot) { root.replaceChildren(); tab.textContent = 'Liste'; return; }
   const list = visibleClosures(now);
+  tab.textContent = `Liste · ${list.length}`;
   if (list.length === 0) {
     root.replaceChildren(el('p', { class: 'empty' }, 'Aucune fermeture à venir dans les prévisions officielles.'));
     return;
   }
+  const today = dateKeyOf(now);
+  const current = list.find((c) => c.start <= now && now < c.end);
+  const next = list.find((c) => c.start > now);
   const head = el('tr', {},
     ...['Événement', 'Date de passage', 'Fermeture à la circulation', 'Réouverture à la circulation', 'Type de fermeture']
       .map((h) => el('th', { scope: 'col' }, h)));
   const body = el('tbody');
   for (const c of list) {
+    const done = c.end <= now;
+    const sub: Child[] = [];
+    if (c === current) sub.push(el('span', { class: 'chip chip--now' }, 'En cours'));
+    else if (c === next) sub.push(el('span', { class: 'chip chip--next' }, 'Prochaine'));
+    sub.push(done ? 'Terminée' : c === current ? null : relativeDay(daysBetween(today, c.dateKey)));
     const tr = el('tr', {
       'data-date': c.dateKey,
-      class: c.end <= now ? 'is-done' : undefined,
+      class: done ? 'is-done' : undefined,
     },
-      el('td', { class: 'ev' }, prettyLabel(c.label)),
+      el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
       el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
       el('td', { 'data-label': 'Fermeture' }, c.startTime),
       el('td', { 'data-label': 'Réouverture' }, el('span', {}, c.endTime, c.overnight ? el('span', { class: 'next-day' }, ' (lendemain)') : null)),
@@ -356,8 +377,7 @@ function renderList(now: number): void {
     );
     body.append(tr);
   }
-  const table = el('table', { class: 'tbl' }, el('caption', { class: 'list-title' }, `Liste complète (${list.length})`), el('thead', {}, head), body);
-  root.replaceChildren(table);
+  root.replaceChildren(el('table', { class: 'tbl', 'aria-label': 'Fermetures à venir' }, el('thead', {}, head), body));
 }
 
 /* ---------- Cycle de vie ---------- */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  addDays, addMonths, dateKeyOf, formatCountdown, formatLength, parisToInstant, splitDuration, HOUR,
+  addDays, addMonths, daysBetween, dateKeyOf, formatCountdown, formatLength, parisToInstant, splitDuration, HOUR,
 } from '../src/lib/time';
 
 describe('parisToInstant', () => {
@@ -35,6 +35,16 @@ describe('calendrier', () => {
     const autumn = parisToInstant('2026-10-26', '00:00') - parisToInstant('2026-10-25', '00:00');
     expect(spring).toBe(23 * HOUR);
     expect(autumn).toBe(25 * HOUR);
+  });
+});
+
+describe('daysBetween', () => {
+  it("compte des jours calendaires, y compris au changement d'heure et d'année", () => {
+    expect(daysBetween('2026-10-26', '2026-10-26')).toBe(0);
+    expect(daysBetween('2026-10-26', '2026-10-27')).toBe(1);
+    expect(daysBetween('2026-10-24', '2026-10-26')).toBe(2);
+    expect(daysBetween('2026-12-30', '2027-01-02')).toBe(3);
+    expect(daysBetween('2026-11-08', '2026-10-26')).toBe(-13);
   });
 });
 

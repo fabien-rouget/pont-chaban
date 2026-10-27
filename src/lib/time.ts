@@ -61,6 +61,13 @@ export function addDays(key: string, days: number): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
 
+/** Nombre de jours calendaires entre deux dates « AAAA-MM-JJ » (négatif si `to` précède `from`). */
+export function daysBetween(from: string, to: string): number {
+  const a = parseDateKey(from);
+  const b = parseDateKey(to);
+  return Math.round((Date.UTC(b.year, b.month - 1, b.day) - Date.UTC(a.year, a.month - 1, a.day)) / 86_400_000);
+}
+
 /** Ajoute des mois à une date, en plafonnant au dernier jour du mois. */
 export function addMonths(key: string, months: number): string {
   const { year, month, day } = parseDateKey(key);
