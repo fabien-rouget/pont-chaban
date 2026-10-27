@@ -129,8 +129,9 @@ function renderHero(now: number): void {
   const fill = el('span', { class: 'frise__fill' });
   fill.style.width = `${Math.round(progress * 100)}%`;
   const bar = el('div', barAttrs, closed ? fill : null);
-  const reopenLabel = endDay === target.dateKey ? 'Réouverture'
-    : endDay === addDays(target.dateKey, 1) ? 'Réouverture · lendemain'
+  // La date n'est précisée que si la réouverture tombe plus tard que le lendemain (fermetures enchaînées).
+  const reopenLabel = endDay === target.dateKey || endDay === addDays(target.dateKey, 1)
+    ? 'Réouverture'
     : `Réouverture · ${formatShortDate(endDay)}`;
 
   const frise = el('div', { class: 'frise' },
@@ -332,7 +333,7 @@ function closuresTable(items: Closure[], now: number, label: string, withRelativ
       el('td', { class: 'ev' }, el('span', { class: 'ev-name' }, prettyLabel(c.label)), el('span', { class: 'ev-sub' }, ...sub)),
       el('td', { 'data-label': 'Date de passage' }, formatNumericDate(c.dateKey)),
       el('td', { 'data-label': 'Fermeture' }, c.startTime),
-      el('td', { 'data-label': 'Réouverture' }, el('span', {}, c.endTime, c.overnight ? el('span', { class: 'next-day' }, ' (lendemain)') : null)),
+      el('td', { 'data-label': 'Réouverture' }, c.endTime),
       el('td', { 'data-label': 'Type' }, el('span', { class: 'tag' }, typeLabel(c.type))),
     ));
   }

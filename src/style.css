@@ -272,7 +272,6 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px 24px; }
 .chip--next { background: var(--accent); color: var(--accent-contrast); }
 .chip--now { background: var(--closed-bg); color: var(--closed-on); }
 .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.8rem; background: var(--accent-soft); color: var(--text); }
-.next-day { color: var(--muted); font-size: 0.85rem; }
 .list-more { margin: 12px 4px 0; font-size: 0.9rem; color: var(--muted); }
 .empty { padding: 16px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
 
@@ -297,7 +296,6 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px 24px; }
   .tbl td.ev::before { display: none; }
   .tbl td[data-label='Type'] { grid-column: 3; grid-row: 1; align-items: flex-end; justify-self: end; }
   .tbl td[data-label='Type']::before { display: none; }
-  .tbl td .next-day { display: block; font-size: 0.8rem; }
 }
 
 /* ---------- Pied de page ---------- */
